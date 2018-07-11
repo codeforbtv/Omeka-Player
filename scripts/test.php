@@ -13,4 +13,4 @@
 ?>
 
 <h1 style = "text-align: center">Test StreamOnly Script</h1>
-<div class="element-text"><div class="item-file audio-mpeg"><audio  class='so-audio' data-sofile='1' data-soexpires='1531540.791' height=20 width=200 controls src='play.php/774859073.m3u'>Your browser does not support the audio element</audio></div></div>
+<div class="element-text"><div class="item-file audio-mpeg"><audio  class='so-audio' data-sofile='1' data-soexpires='1531540.791' height=20 width=200 controls controlsList="nodownload" src='play.php/774859075.m3u'>Your browser does not support the audio element</audio></div></div>

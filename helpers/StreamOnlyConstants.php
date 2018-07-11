@@ -58,7 +58,9 @@ const REWRITE_CONDITION = "RewriteCond %{REQUEST_FILENAME} -f\n";
 const REWRITE_RULE = "RewriteRule ^plugins/StreamOnly/scripts/.*\.php$ - [L]\n";
 
 const SO_DENY_ACCESS =
-"# New-fangled directions
+"Options -Indexes
+
+# New-fangled directions
 <IfModule mod_authz_core.c>
     Require all denied
 </IfModule>

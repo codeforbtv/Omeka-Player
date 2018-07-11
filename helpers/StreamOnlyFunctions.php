@@ -91,6 +91,10 @@ function soDisplayFile($record, $props) {
     $timeout         = get_option('so_timeout');  // TODO use info in StreamOnly Table
     $licenses        = get_option('so_licenses'); // TODO use info in StreamOnly Table
 
+    // TODO We need to keep this info in a file, because the browser is invoking play.php
+    // TODO immediately, causing the .m3u files to be deleted.
+    // TODO Need to create empty file in hookInstall()
+    // TODO Two fields: file_id, expires
     $reservedFiles   = [];
     $reservedExpires = [];
 
@@ -158,7 +162,9 @@ function soDisplayFile($record, $props) {
     $msg = __("Your browser does not support the audio element");
     $expires = (($now + ($timeout * 1000))/1000) - 2;
     $audioProps = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
-    $audioProps .= _build_audio_props($props);
+    // TODO "controlsList" is experiemental - put note in developer documentation
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/controlsList
+    $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
     $html = "<audio $audioProps src='plugins/StreamOnly/scripts/play.php/$m3uFile.m3u'>$msg</audio>";
     return ($html);
 }

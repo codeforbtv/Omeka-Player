@@ -170,7 +170,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * @return bool
      */
     private function _isProtectedFile($file) {
-        return (preg_match("(audio/mpeg)i", $file->mimeType));
+        return ($file->mime_type == "audio/mpeg");
+//        return (preg_match("(audio/mpeg)i", $file->mime_type));
 //        return (preg_match("(\.mp3$)", $file->filename));
     }
 
@@ -342,7 +343,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Create the m3u directory under the files directory, and create the .htaccess file there
         $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u';
-        if (!mkdir($m3uDir, 0777)) {
+        if (!mkdir($m3uDir, 0777)) {               // TODO determine appropriate permissions
             die("Couldn't create m3u directory");  // TODO use Omeka error reporting
         }
         $handle = fopen($m3uDir . "/.htaccess", "w");
@@ -384,7 +385,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         while ($file = readdir($dir)) {
             unlink($m3uDir . $file);
         }
-        rmdir(m3uDir);
+        rmdir($m3uDir);
 
         // Remove the option values from the db table
         delete_option(OPTION_LICENSES);

@@ -38,11 +38,6 @@ if (!file_exists($m3uDir)) {
     die("Can't find playlist directory: $m3uDir");
 }
 
-//$m3uID = $_GET["id"];
-//if (!$m3uID) {
-//    die("ID not found in query: $m3uID");
-//}
-
 if (preg_match("/(\d+)\.m3u$/", $_SERVER['PATH_INFO'], $matches)) {
     $m3uID = $matches[1];
 } else {
@@ -92,7 +87,7 @@ header("Content-Length: " . filesize($mp3Filename));
 //header("Pragma: no-cache");
 
 //if (extension_loaded("X-Sendfile")) {  // TODO Add option for admin to specify use of mod_xsendfile
-//    fclose($handle);
+//    fclose($handle);                   // TODO Add config instructions to developer and user manuals
 //    header("X-Sendfile: $mp3Filename");
 //    exit;
 //}
