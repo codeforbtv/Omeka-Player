@@ -39,46 +39,33 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
     protected $_filters = array();
 
+    protected static $_callbackOptions = array(
+        'width' => '200',
+        'height' => '20',
+        'autoplay' => false,
+        'controller' => true,
+        'loop' => false
+    );
+
     // TODO Check that Omeka translates this message, and that plugin doesn't have to do it
     public $uninstall_message = "All protected files will be moved to the default upload directory. Visitors to the site will be able to download them. All Items of Item Type StreamOnly will be set to undefined.";
 
     /**
      * StreamOnly plugin constructor.
-     * Called at the end of parent::__construct()
      *
-     * Initializes global variables for the StreamOnlyPlugin Object
-     *   Initializes $_options with values from the Option table
-     *   If the entries do not exist, they are set to default values
-     *
-     * TODO NOTE: this routine is NEVER called, maybe someday it will be
+     * Registers the callback function used by Omeka's Global Theming Function "file_markup()"
+     *   to output the HTML for audio/mpeg files.
+     * TODO third param - $options - to be passed to callback as second param - $props?
+     * TODO If so, should we allow admin or theme to customize?
      *
      * @return StreamOnlyPlugin
      */
-    protected function construct()
+    public function __construct()
     {
+        parent::__construct();
 
-//        $record = get_record('Option', array('name'=>OPTION_LICENSES));
-//        if ($record) {
-//            $this->_options[OPTION_LICENSES] = $record['value'];
-//        } else {
-//            $this->_options[OPTION_LICENSES] = DEFAULT_LICENSES;
-//        }
-//
-//        $record = get_record('Option', array('name'=>OPTION_FOLDER));
-//        if ($record) {
-//            $this->_options[OPTION_FOLDER] = $record['value'];
-//        } else {
-//            $this->_options[OPTION_FOLDER] = DEFAULT_FOLDER;
-//        }
-//
-//        $record = get_record('Option', array('name'=>OPTION_TIMEOUT));
-//        if ($record) {
-//            $this->_options[OPTION_TIMEOUT] = $record['value'];
-//        } else {
-//            $this->_options[OPTION_TIMEOUT] = DEFAULT_TIMEOUT;
-//        }
-
-        return ($this);
+        // Register callback
+        add_file_display_callback(array('mimeTypes' => array('audio/mpeg')), 'soDisplayFile', self::$_callbackOptions);
     }
 
 
@@ -183,7 +170,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * @return bool
      */
     private function _isProtectedFile($file) {
-        return (preg_match("(\.mp3$)", $file->filename));
+        return (preg_match("(audio/mpeg)i", $file->mimeType));
+//        return (preg_match("(\.mp3$)", $file->filename));
     }
 
     /**
@@ -293,7 +281,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      *
      * checks that the StreamOnly ItemType does not exist, then creates it
      * (to ensure the integrity of the plugin, we want it to set up the db properly)
-     * creates a table in the database to store info about SO protected .mp3 files
+     * creates a table in the database to store info about SO protected audio/mpeg files
      * (table can be accessed with $db->getTable('StreamOnly'))
      * initializes options with defaults for SO Items
      *
@@ -352,6 +340,15 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // Number of seconds after which temporary files granting access to protected audio files can be deleted
         set_option(OPTION_TIMEOUT, DEFAULT_TIMEOUT);
 
+        // Create the m3u directory under the files directory, and create the .htaccess file there
+        $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u';
+        if (!mkdir($m3uDir, 0777)) {
+            die("Couldn't create m3u directory");  // TODO use Omeka error reporting
+        }
+        $handle = fopen($m3uDir . "/.htaccess", "w");
+        fwrite($handle, SO_DENY_ACCESS);
+        fclose($handle);
+
 //        // Add new Rewrite rule to .htaccess file TODO restore when testing rule
 //        so_update_access('add');
 
@@ -365,7 +362,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * Removes the Item Type StreamOnly
      *
      * removes options created by hookInstall() for storing defaults
-     * removes the table in the database with info about SO protected .mp3 files
+     * removes the table in the database with info about SO protected audio/mpeg files
      * removes the Rewrite rule in the .htaccess file added by hookInstall()
      *
      * Leaves in place the Elements unique to SO Item Type
@@ -378,6 +375,16 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     {
 
         $db = get_db();
+
+        // Remove all the files from the m3u directory under the files directory,
+        // then delete the directory
+        $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u/';
+        $dir = opendir($m3uDir);
+        if (!$dir) die("Can't find playlist directory"); // TODO Report Omeka Error
+        while ($file = readdir($dir)) {
+            unlink($m3uDir . $file);
+        }
+        rmdir(m3uDir);
 
         // Remove the option values from the db table
         delete_option(OPTION_LICENSES);
@@ -402,7 +409,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
         // Get all the Items of Item Type StreamOnly
-        $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$ItemType->id));
+        $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$itemType->id));
 
         // For each Item, move the protected files from the StreamOnly folder to the default Omeka uploads folder
         $target = array ('which'=>'Omeka', 'dir'=>"");
@@ -421,7 +428,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // For Items of this type set the Item Type to "undefined"
         $db->update($db->Item, array('item_type_id' => null),
-            array('item_type_id = ?' => $id));
+            array('item_type_id = ?' => $itemType->id));
 
         // Delete the StreamOnly Item Type
         $itemType->delete();
@@ -817,7 +824,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             $sourcePath = $targetPath;
         // We've looked everywhere, and didn't find it
         } else {
-            die (`File not found where expected: $file->filename \n`);
+            die ("File not found where expected: $file->filename \n");
         }
 
         if ($targetPath != $sourcePath) {
@@ -825,7 +832,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         }
 
 
-        echo(`hookBeforeDeleteFile: $file->filename \n`);
+        echo("hookBeforeDeleteFile: $file->filename \n");
     }
 
     /**
