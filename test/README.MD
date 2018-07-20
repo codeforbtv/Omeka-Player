@@ -34,7 +34,7 @@ for reasons having nothing to do with the .htaccess file.)
 In order to isolate the effects of changes to the script and to Omeka's
 .htaccess file, a test environment has been created containing the bare
 minimum needed to execute the script. All of these files are found in the
-GitHub repository, in the branch "front-end", in the directory test/:
+GitHub repository, in the branch "frontend", in the directory test/:
 * README.MD - this file, documentation of test environment
 * index.php - contains HTML that is typical of that produced by Omeka
 and the StreamOnly plugin for protected audio files. With the
