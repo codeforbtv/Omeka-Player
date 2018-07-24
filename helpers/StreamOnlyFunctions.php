@@ -110,7 +110,7 @@ function soDisplayFile($record, $props) {
         # If the file is too old, delete it
         $fileinfo = stat($m3uDir . $file);
         $now      = time();
-        $expires  = $fileinfo['mtime'] + ($timeout * 1000);
+        $expires  = strval((int)$fileinfo['mtime'] + (int)$timeout);
         if ($expires <= $now) {
             unlink($m3uDir . $file);
             continue;
@@ -138,7 +138,7 @@ function soDisplayFile($record, $props) {
     // If enough of them do, ask the user to wait his/her turn
     if (isset($reservedFiles[$id]) && $reservedFiles[$id] >= $licenses) {
         $expires = $reservedExpires[$id];
-        $seconds = ($expires - $now) / 1000;
+        $seconds = ($expires - $now);
         $msg     = __("Recording reserved, available in <span class='so-seconds'>%s</span> seconds", $seconds);
         $html    = "<span class='so-msg' data-sofile='$id' data-soexpires='$expires'>$msg</span>";
         return ($html);
@@ -159,12 +159,18 @@ function soDisplayFile($record, $props) {
     fclose($handle);
 
     // Build the HTML for this file
-    $msg = __("Your browser does not support the audio element");
-    $expires = (($now + ($timeout * 1000))/1000) - 2;
+
+    $expires = $now + (int)$timeout - 2;
     $audioProps = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
-    // TODO "controlsList" is experiemental - put note in developer documentation
-    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/controlsList
     $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
-    $html = "<audio $audioProps src='plugins/StreamOnly/scripts/play.php/$m3uFile.m3u'>$msg</audio>";
+    $url  = WEB_PLUGIN . // Constant supplied by Omeka
+            "/StreamOnly/scripts/play.php/" .
+            $m3uFile . ".m3u/";
+    $msg  = __("Your browser does not support the audio element");
+
+    $html  = "\n<audio $audioProps>\n";
+    $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
+    $html .= "<span class='so-noaudio'>$msg</span>\n";
+    $html .= "</audio>";
     return ($html);
 }

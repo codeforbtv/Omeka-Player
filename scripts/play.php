@@ -38,7 +38,7 @@ if (!file_exists($m3uDir)) {
     die("Can't find playlist directory: $m3uDir");
 }
 
-if (preg_match("/(\d+)\.m3u$/", $_SERVER['PATH_INFO'], $matches)) {
+if (preg_match("#/(\d+).m3u/$#", $_SERVER['PATH_INFO'], $matches)) {
     $m3uID = $matches[1];
 } else {
     die("Badly formed script name");
