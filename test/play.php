@@ -38,7 +38,8 @@ if (!file_exists($m3uDir)) {
     die("Can't find playlist directory: $m3uDir");
 }
 
-if (preg_match("#/(\d+).m3u/$#", $_SERVER['PATH_INFO'], $matches)) {
+// TODO ***
+if (preg_match("#/(\d+).m3u/$#", $_SERVER['REQUEST_URI'], $matches)) {
     $m3uID = $matches[1];
 } else {
     die("Badly formed script name");
@@ -79,12 +80,14 @@ if (!$handle) {
 header("Content-Disposition: inline");
 header("Content-Type: audio/mpeg");
 header("Content-Length: " . filesize($mp3Filename));
+
 //$timestamp = gmdate("D, d M Y H:i:s") . " GMT";
-//header("Expires: $timestamp");
 //header("Last-Modified: $timestamp");
-//header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", false);
+//header("Expires: $timestamp");
+
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", false);
 //header("Cache-Control: post-check=0, pre-check=0", false);
-//header("Pragma: no-cache");
+header("Pragma: no-cache");
 
 //if (extension_loaded("X-Sendfile")) {  // TODO Add option for admin to specify use of mod_xsendfile
 //    fclose($handle);                   // TODO Add config instructions to developer and user manuals

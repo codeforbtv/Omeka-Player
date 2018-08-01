@@ -141,7 +141,7 @@ function so_delete($id)
  * @param $item - an Item record
  * @return bool
  */
-function isSOItem($item) {
+function isSOItem($item) { // TODO re-order tests
 
     // The Item Type is currently StreamOnly,
     //   or in the process of being changed to StreamOnly

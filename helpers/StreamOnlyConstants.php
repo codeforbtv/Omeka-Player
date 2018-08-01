@@ -56,3 +56,24 @@ const HTACCESS = '.htaccess-old';
 const HTACCESS_TMP = '.htaccess-tmp';
 const REWRITE_CONDITION = "RewriteCond %{REQUEST_FILENAME} -f\n";
 const REWRITE_RULE = "RewriteRule ^plugins/StreamOnly/scripts/.*\.php$ - [L]\n";
+
+
+// .htaccess file for files/m3u/ directory
+const SO_DENY_ACCESS =
+"Options -Indexes
+
+AddType audio/mpeg mp3
+
+# New-fangled directions
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Old-timey directives
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+</IfModule>";
+
+const SO_XSENDFILE_ON =
+"XSendFile on";
