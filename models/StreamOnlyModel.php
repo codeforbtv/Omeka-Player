@@ -11,7 +11,6 @@
 
 class StreamOnlyModel extends Omeka_Record_AbstractRecord {
 
-
     /**
      * ID of the Item this Record belongs to.
      *
@@ -25,6 +24,13 @@ class StreamOnlyModel extends Omeka_Record_AbstractRecord {
      * @var string
      */
     public $so_directory;
+
+    /**
+     * # users who may access this Item's files simultaneously.
+     *
+     * @var int
+     */
+    public $so_licenses;
 
     /**
      * # seconds after which .m3u files for this Item may be deleted.
@@ -44,6 +50,7 @@ class StreamOnlyModel extends Omeka_Record_AbstractRecord {
         $this->id = 0;
         $this->item_id = NULL;
         $this->so_directory = NULL;
+        $this->so_licenses = NULL;
         $this->so_timeout = NULL;
 
         return ($this);
