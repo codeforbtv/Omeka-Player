@@ -10,8 +10,8 @@
 //  Item Type
 const SO_ITEM_TYPE_NAME = 'StreamOnly';
 const SO_ITEM_TYPE_DESCRIPTION = 'Audio files stored in this Item Type cannot be downloaded';
-const SO_PLUGIN_NAME = "StreamOnly Plugin";
-const SO_PLUGIN_MODEL = "StreamOnlyModel";
+const SO_PLUGIN_NAME = 'StreamOnly';
+const SO_PLUGIN_MODEL = 'StreamOnlyModel';
 
 // Elements
 const ELEMENT_TRANSCRIPTION = 'Transcription';

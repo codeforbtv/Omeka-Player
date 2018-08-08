@@ -25,8 +25,6 @@ function so_elements(){
 
     // List of default 'Item Elements' for 'Item Type Metadata' of "StreamOnly"
     // Using the same list as for 'Item Type' of "Sound" for now
-    // TODO Might want to store the item's license count as Item Type Metadata
-    // TODO Might want to store the item's path name as Item Type Metadata
     $so_item_elements = array(
         array(
             'name'=>ELEMENT_TRANSCRIPTION,
@@ -49,14 +47,19 @@ function so_elements(){
             'order'=>4
         ),
         array(
-            'name'=>ELEMENT_LICENSE_COUNT,
-            'description'=>ELEMENT_LICENSE_COUNT_DESCRIPTION,
+            'name'=>ELEMENT_FOLDER,
+            'description'=>ELEMENT_FOLDER_DESCRIPTION,
             'order'=>5
         ),
         array(
-            'name'=>ELEMENT_FOLDER,
-            'description'=>ELEMENT_FOLDER_DESCRIPTION,
+            'name'=>ELEMENT_LICENSE_COUNT,
+            'description'=>ELEMENT_LICENSE_COUNT_DESCRIPTION,
             'order'=>6
+        ),
+        array(
+            'name'=>ELEMENT_TIMEOUT,
+            'description'=>ELEMENT_TIMEOUT_DESCRIPTION,
+            'order'=>7
         )
     );
     $add_elements = array();
@@ -141,7 +144,7 @@ function so_delete($id)
  * @param $item - an Item record
  * @return bool
  */
-function isSOItem($item) { // TODO re-order tests
+function isSOItem($item) {
 
     // The Item Type is currently StreamOnly,
     //   or in the process of being changed to StreamOnly
