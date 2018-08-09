@@ -51,6 +51,12 @@ const DEFAULT_LICENSES = 1;
 const DEFAULT_FOLDER = 'so_files';
 CONST DEFAULT_TIMEOUT = 300;
 
+// Info stored in .m3u file
+const M3U_FILENAME = 0;
+const M3U_FILEID   = 1;
+const M3U_EXPIRES  = 2;
+const M3U_LICENSES = 3;
+
 // .htaccess rule
 const HTACCESS = '.htaccess-old';
 const HTACCESS_TMP = '.htaccess-tmp';
