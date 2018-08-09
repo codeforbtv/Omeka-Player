@@ -169,7 +169,7 @@ function soDisplayFile($record, $props)
         $newFilelist .= $filename . "," .
                         $id . "," .
                         $expires . "," .
-                        $licenses;
+                        $licenses . "\n";
 
         // Build the HTML for this file
         $expires    -= 2;
