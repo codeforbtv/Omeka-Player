@@ -390,8 +390,12 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         if (!mkdir($m3uDir, 0777)) {               // TODO determine appropriate permissions
             die("Couldn't create m3u directory");  // TODO use Omeka error reporting
         }
+        // create the .htaccess file to protect the .m3u files
         $handle = fopen($m3uDir . "/.htaccess", "w");
         fwrite($handle, SO_DENY_ACCESS);
+        fclose($handle);
+        // Create an empty file for storing list of reserved files
+        $handle = fopen($m3uDir . "/reserved.txt", "w");
         fclose($handle);
 
 //        // Add new Rewrite rule to .htaccess file TODO restore when testing rule
@@ -936,7 +940,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
     }
 
-    /****** ITEM TYPES ELEMENTS********************************************/
+    /****** ELEMENT TEXTS ********************************************/
 
     /**
      * Fires before the record is saved to the ItemTypesElement table

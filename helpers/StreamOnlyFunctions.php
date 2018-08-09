@@ -71,68 +71,77 @@ function _build_audio_props($props) {
  *
  * @return string - the HTML for the audio file
  */
-function soDisplayFile($record, $props) {
-
-    $db = get_db();
+function soDisplayFile($record, $props)
+{
 
     $item = $record->getItem();
+    $alt_msg = __("Your browser does not support the audio tag");
+
+    // TODO See if there's a way to use the Omeka callback
     if (!isSOItem($item)) {
-        $msg = __("Your browser does not support the audio tag");
-        $filename = $record['filename'];
+        $url = WEB_FILES . "/original/" . $record['filename'];
         $audioProps = _build_audio_props($props);
-        $html = "<audio $audioProps src='files/original/$filename'>$msg</audio>";
-        return ($html); // TODO use $props to modify $html???
+        $html  = "\n<audio $audioProps>\n";
+        $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
+        $html .= "$alt_msg\n";
+        $html .= "</audio>\n";
+        return ($html);
     }
 
-    $soFileID        = $record['id'];
-    $mp3Dir          = get_record('StreamOnlyModel', array("file_id" => $soFileID))['so_directory'];
-    $m3uDir          = _remove_nodes(dirname(__FILE__), 3) . '/files/m3u/';
+    $id = $record['id'];
+    $soRecord = get_record('StreamOnlyModel', array("file_id" =>$id));
+    $soDirectory = $soRecord['so_directory'];
+    $timeout = $soRecord['so_timeout'];
+    $licenses = $soRecord['so_licenses'];
+    $m3uDir = BASE_DIR . '/files/m3u/';
+    $mp3Dir = "/$soDirectory/";
+    $now = time();
 
-    $timeout         = get_option('so_timeout');  // TODO use info in StreamOnly Table
-    $licenses        = get_option('so_licenses'); // TODO use info in StreamOnly Table
-
-    // TODO We need to keep this info in a file, because the browser is invoking play.php
-    // TODO immediately, causing the .m3u files to be deleted.
-    // TODO Need to create empty file in hookInstall()
-    // TODO Two fields: file_id, expires
-    $reservedFiles   = [];
-    $reservedExpires = [];
-
-    # Scan the playlist directory for old files and delete them
-    # If we don't do this, the playlist directory will become cluttered.
+    # Scan the playlist directory for old files left around
+    #   when people navigated away from pages or the site
+    # If we don't delete them, the playlist directory could become cluttered.
     $dir = opendir($m3uDir);
-    if (!$dir) {die("Can't find playlist directory");} // TODO Report Omeka Error
+    if (!$dir) die(__("Can't find playlist directory")); // TODO Report Omeka Error
+
     while ($file = readdir($dir)) {
 
         # Ignore everything that isn't an .m3u file
         if (!preg_match("/.m3u$/i", $file)) continue;
 
         # If the file is too old, delete it
-        $fileinfo = stat($m3uDir . $file);
-        $now      = time();
-        $expires  = strval((int)$fileinfo['mtime'] + (int)$timeout);
-        if ($expires <= $now) {
+        $content = file($m3uDir . $file);
+        if ($content[M3U_EXPIRES] <= $now) {
             unlink($m3uDir . $file);
             continue;
         }
+    }
+
+    $reservedFiles = [];
+    $reservedExpires = [];
+
+    // Scan the reserved audio files, to see if this one is reserved
+    // Delete expired entries in the file
+    $filelist = file($m3uDir . "reserved.txt");
+    $newFilelist = "";
+    foreach ($filelist as $file) {
+        $fileinfo = explode(",", $file);
+
+        // If this entry has expired
+        //   don't add it to the list of reserved files
+        if ($fileinfo[M3U_EXPIRES] <= $now) continue;
 
         # Record that someone has this file reserved
-        # The key of the record in the Files Table is stored on the second line of the playlist
-        $content = file($m3uDir . $file);
-        $mp3ID   = (int) $content[1];
+        $mp3ID = (int)$fileinfo[M3U_FILEID];
+        $newFilelist .= $file;
 
         // Determine how many other users have this file reserved
         $reservedFiles[$mp3ID] =
-            (isset($reservedFiles[$mp3ID])) ? $reservedFiles[$mp3ID]++ : 1;
+            (isset($reservedFiles[$mp3ID])) ? $reservedFiles[$mp3ID] + 1 : 1;
 
         // Determine the soonest a reservation will expire
         $reservedExpires[$mp3ID] =
-            (isset($reservedExpires[$mp3ID])) ? min($reservedExpires[$mp3ID], $expires) : $expires;
-
+            (isset($reservedExpires[$mp3ID])) ? min($reservedExpires[$mp3ID], $fileinfo[M3U_EXPIRES]) : $fileinfo[M3U_EXPIRES];
     }
-
-    $id  = $record['id'];
-    $now = time();
 
     // Check to see if others have the file reserved
     // If enough of them do, ask the user to wait his/her turn
@@ -141,36 +150,42 @@ function soDisplayFile($record, $props) {
         $seconds = ($expires - $now);
         $msg     = __("Recording reserved, available in <span class='so-seconds'>%s</span> seconds", $seconds);
         $html    = "<span class='so-msg' data-sofile='$id' data-soexpires='$expires'>$msg</span>";
-        return ($html);
+    } else {
+
+        # Generate a unique ID for this song download.
+        $m3uFile = rand(0, 1 << 30) . ".m3u";
+        $handle = fopen($m3uDir . $m3uFile, "w");
+
+        $fileinfo[M3U_FILENAME] = $mp3Dir . $record['filename'];
+        $fileinfo[M3U_FILEID] = $id;
+        $fileinfo[M3U_EXPIRES] = $now + (int)$timeout;
+        $fileinfo[M3U_LICENSES] = $licenses;
+        fwrite($handle, implode("\n", $fileinfo) . "\n");
+        fclose($handle);
+
+        // Add to the list of reserved files
+        $newFilelist .= implode(",", $fileinfo) . "\n";
+
+        // Build the HTML for this file
+        $expires    = $now + (int)$timeout - 2;
+        $audioProps  = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
+        $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
+        $url = WEB_PLUGIN . "/StreamOnly/scripts/play.php/$m3uFile/";
+
+        $html  = "\n" . "<audio $audioProps>" . "\n";
+        $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
+        $html .= "<span class='so-noaudio'>$alt_msg</span>\n";
+        $html .= "</audio>";
     }
 
-    # Needed for PHP versions OLDER than 4.2.0 only.
-    # If your host still has PHP older than 4.2.0, shame on them.
-    # Find a better web host.
-    // list($usec, $sec) = explode(' ', microtime());
-    // $seed = (float) $sec + ((float) $usec * 100000);
-    // srand($seed);
+    // Write out the list of reserved files
+    $newReservedFile = "reserved." . rand(0, 1 << 30);
+    $handle = fopen($m3uDir . $newReservedFile, "w");
+    fwrite ($handle, $newFilelist);
+    fclose ($handle);
+    do {
+        $renamed = rename($m3uDir . $newReservedFile, $m3uDir . "reserved.txt");
+    } while (!$renamed);
 
-    # Generate a unique ID for this song download.
-    $m3uFile = rand(0, 1 << 30);
-    $handle = fopen($m3uDir . $m3uFile . ".m3u", "w");
-    fwrite($handle, DIRECTORY_SEPARATOR . $mp3Dir .DIRECTORY_SEPARATOR. $record['filename'] . "\n");
-    fwrite($handle, $id . "\n");
-    fclose($handle);
-
-    // Build the HTML for this file
-
-    $expires = $now + (int)$timeout - 2;
-    $audioProps = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
-    $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
-    $url  = WEB_PLUGIN . // Constant supplied by Omeka
-            "/StreamOnly/scripts/play.php/" .
-            $m3uFile . ".m3u/";
-    $msg  = __("Your browser does not support the audio element");
-
-    $html  = "\n<audio $audioProps>\n";
-    $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
-    $html .= "<span class='so-noaudio'>$msg</span>\n";
-    $html .= "</audio>";
     return ($html);
 }
