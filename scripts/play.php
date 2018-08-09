@@ -17,6 +17,15 @@
  * @param $count - int, # directories to remove from the end of $path
  * @return null|string|string[]
  */
+
+// Must match definitions found in helpers/StreamOnlyConstants.php
+// Info stored in .m3u file
+const M3U_FILENAME = 0;
+const M3U_FILEID   = 1;
+const M3U_EXPIRES  = 2;
+const M3U_LICENSES = 3;
+
+
 function _remove_nodes($path, $count) {
 
     while ($count > 0) {
@@ -58,12 +67,12 @@ if (!$playlist) {
 // Delete the .m3u file so audio file can't be downloaded again.
 unlink($m3uFile);
 
-if (!$playlist[0]) {
-    die("Playlist corrupt; no audio file listed: $playlist, $mp3Filename");
+if (!$playlist[M3U_FILENAME]) {
+    die("Playlist corrupt; no audio file listed: $m3uFile, $playlist");
 }
 
-$mp3Filename = trim($playlist[0]);
-$mp3FileID = trim($playlist[1]);
+$mp3Filename = trim($playlist[M3U_FILENAME]);
+$mp3FileID = trim($playlist[M3U_FILEID]);
 
 
 if (!file_exists($mp3Filename)) {

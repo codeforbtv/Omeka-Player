@@ -51,6 +51,7 @@ const DEFAULT_LICENSES = 1;
 const DEFAULT_FOLDER = 'so_files';
 CONST DEFAULT_TIMEOUT = 300;
 
+// Must match definitions found in scripts/play.php
 // Info stored in .m3u file
 const M3U_FILENAME = 0;
 const M3U_FILEID   = 1;

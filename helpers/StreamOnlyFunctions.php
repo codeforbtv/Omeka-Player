@@ -125,11 +125,10 @@ function soDisplayFile($record, $props)
     $newFilelist = "";
     foreach ($filelist as $file) {
         $fileinfo = explode(",", $file);
-        $expires = $fileinfo[M3U_EXPIRES];
 
         // If this entry has expired
         //   don't add it to the list of reserved files
-        if ($expires <= $now) continue;
+        if ($fileinfo[M3U_EXPIRES] <= $now) continue;
 
         # Record that someone has this file reserved
         $mp3ID = (int)$fileinfo[M3U_FILEID];
@@ -137,11 +136,11 @@ function soDisplayFile($record, $props)
 
         // Determine how many other users have this file reserved
         $reservedFiles[$mp3ID] =
-            (isset($reservedFiles[$mp3ID])) ? $reservedFiles[$mp3ID]++ : 1;
+            (isset($reservedFiles[$mp3ID])) ? $reservedFiles[$mp3ID] + 1 : 1;
 
         // Determine the soonest a reservation will expire
         $reservedExpires[$mp3ID] =
-            (isset($reservedExpires[$mp3ID])) ? min($reservedExpires[$mp3ID], $expires) : $expires;
+            (isset($reservedExpires[$mp3ID])) ? min($reservedExpires[$mp3ID], $fileinfo[M3U_EXPIRES]) : $fileinfo[M3U_EXPIRES];
     }
 
     // Check to see if others have the file reserved
@@ -156,23 +155,19 @@ function soDisplayFile($record, $props)
         # Generate a unique ID for this song download.
         $m3uFile = rand(0, 1 << 30) . ".m3u";
         $handle = fopen($m3uDir . $m3uFile, "w");
-        $filename = $mp3Dir . $record['filename'];
-        $expires = $now + (int)$timeout;
-        $m3uContent =   $filename . "\n" .
-                        $id .       "\n" .
-                        $expires .  "\n" .
-                        $licenses . "\n";
-        fwrite($handle, $m3uContent);
+
+        $fileinfo[M3U_FILENAME] = $mp3Dir . $record['filename'];
+        $fileinfo[M3U_FILEID] = $id;
+        $fileinfo[M3U_EXPIRES] = $now + (int)$timeout;
+        $fileinfo[M3U_LICENSES] = $licenses;
+        fwrite($handle, implode("\n", $fileinfo) . "\n");
         fclose($handle);
 
         // Add to the list of reserved files
-        $newFilelist .= $filename . "," .
-                        $id . "," .
-                        $expires . "," .
-                        $licenses . "\n";
+        $newFilelist .= implode(",", $fileinfo) . "\n";
 
         // Build the HTML for this file
-        $expires    -= 2;
+        $expires    = $now + (int)$timeout - 2;
         $audioProps  = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
         $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
         $url = WEB_PLUGIN . "/StreamOnly/scripts/play.php/$m3uFile/";
