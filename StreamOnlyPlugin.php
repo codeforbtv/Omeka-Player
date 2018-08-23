@@ -33,14 +33,14 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         'before_delete_item',
         'after_delete_item',
 
-        'before_save_file',
+//        'before_save_file',
         'after_save_file',
         'before_delete_file',
-        'after_delete_file',
+//        'after_delete_file',
 
-        'before_save_element_text',
+//        'before_save_element_text',
         'after_save_element_text',
-        'before_delete_element_text',
+//        'before_delete_element_text',
         'after_delete_element_text');
 
     protected $_options = array();
@@ -68,55 +68,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
     // TODO Check that Omeka translates this message, and that plugin doesn't have to do it
     public $uninstall_message = "All protected files will be moved to the default upload directory. Visitors to the site will be able to download them. All Items of Item Type StreamOnly will be set to undefined.";
-
-    /**
-     * StreamOnly plugin constructor.
-     *
-     * Registers the callback function used by Omeka's Global Theming Function "file_markup()"
-     *   to output the HTML for audio/mpeg files.
-     * TODO third param - $options - to be passed to callback as second param - $props?
-     * TODO If so, should we allow admin or theme to customize?
-     *
-     * @return StreamOnlyPlugin
-     */
-    public function __construct()
-    {
-        parent::__construct();
-
-        // If the plugin is installed, store some useful info for optimization
-        $plugin = get_record('Plugin', array("name"=>SO_PLUGIN_NAME));
-        if ($plugin && ($plugin->active == 1)) {
-            $option = get_record('Option',  array("name"=>OPTION_FOLDER));
-            if ($option) {
-                $this->_soState['folder_option'] = $option->value;
-            }
-            $element = get_record('Element', array("name"=>ELEMENT_FOLDER));
-            if ($element) {
-                $this->_soState['folder_elemtext_id'] = $element->id;
-            }
-            $option = get_record('Option',  array("name"=>OPTION_LICENSES));
-            if ($option) {
-                $this->_soState['license_option'] = $option->value;
-            }
-
-            $element = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
-            if ($element) {
-                $this->_soState['license_elemtext_id'] = $element->id;
-            }
-            $option = get_record('Option',  array("name"=>OPTION_TIMEOUT));
-            if ($option) {
-                $this->_soState['timeout_option'] = $option->value;
-            }
-            $element = get_record('Element', array("name"=>ELEMENT_TIMEOUT));
-            if ($element) {
-                $this->_soState['timeout_elemtext_id'] = $element->id;
-            }
-       }
-
-        // Register callback for display of protected files
-        add_file_display_callback(array('mimeTypes' => array('audio/mpeg')), 'soDisplayFile', self::$_callbackOptions);
-    }
-
 
     /**
      * Get the fields from the $_POST variable that are useful for the StreamOnly plugin
@@ -153,35 +104,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     }
 
     /**
-     * Check that the user input is valid when creating/editing an Item
-     *
-     * TODO output error messages as needed
-     * TODO check that Omeka sanitizes POST variables
-     *
-     * @postData - the output from _getPostData()
-     * @return bool (true if no errors;
-     *               false if errors, messages stored in $record)
-     */
-    private function _soValidateItemFields($postData, $item) {
-
-        $no_errors = true;
-
-        // 1. $postData[ELEMENT_LICENSE_COUNT_FIELD] is an integer > 0
-        // 2. $postData[ELEMENT_FOLDER_FIELD] is a valid path
-        // 3. The length of the path + file name < 255 chars
-        // 4.
-
-        // Use defined constants for the field names
-        // $item->addError('field_name', __('Error message'));
-        // $item->addError(ELEMENT_LICENSE_COUNT_FIELD, __('Error message'));
-        // $item->addError(ELEMENT_FOLDER_FIELD,        __('Error message'));
-        // $item->addError(ELEMENT_TIMEOUT_FIELD,       __('Error message'));
-
-        return $no_errors;
-
-    }
-
-    /**
      * Check that the user input is valid
      *
      * TODO output error messages as needed
@@ -204,7 +126,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // 5. $postData[OPTION_TIMEOUT_FIELD] is an integer
 
         // Use defined constants for the field names
-        // $record->addError('field_name', __('Error message')); ?? where is the record ??
+        // $record->addError('field_name', __('Error message'));
         // $record->addError(OPTION_LICENSE_COUNT_FIELD, __('Error message'));
         // $record->addError(OPTION_FOLDER_FIELD,        __('Error message'));
         // $record->addError(OPTION_TIMEOUT_FIELD,       __('Error message'));
@@ -317,17 +239,65 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             $this->_moveFile($file, $sourceDir, $targetDir);
         }
     }
-
     /****** PLUGIN *********************************************************/
+
+    /**
+     * StreamOnly plugin constructor.
+     *
+     * Stores useful info in protected variable $this->_soState
+     * Registers the callback function that outputs the HTML for audio/mpeg files.
+     * TODO third param - $options - to be passed to callback as second param - $props?
+     * TODO If so, should we allow admin or theme to customize?
+     *
+     * @return StreamOnlyPlugin
+     */
+    public function __construct()
+    {
+        parent::__construct();
+
+        // If the plugin is installed, store some useful info for optimization
+        $plugin = get_record('Plugin', array("name"=>SO_PLUGIN_NAME));
+        if ($plugin && ($plugin->active == 1)) {
+            $option = get_record('Option',  array("name"=>OPTION_FOLDER));
+            if ($option) {
+                $this->_soState['folder_option'] = $option->value;
+            }
+            $element = get_record('Element', array("name"=>ELEMENT_FOLDER));
+            if ($element) {
+                $this->_soState['folder_elemtext_id'] = $element->id;
+            }
+            $option = get_record('Option',  array("name"=>OPTION_LICENSES));
+            if ($option) {
+                $this->_soState['license_option'] = $option->value;
+            }
+
+            $element = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
+            if ($element) {
+                $this->_soState['license_elemtext_id'] = $element->id;
+            }
+            $option = get_record('Option',  array("name"=>OPTION_TIMEOUT));
+            if ($option) {
+                $this->_soState['timeout_option'] = $option->value;
+            }
+            $element = get_record('Element', array("name"=>ELEMENT_TIMEOUT));
+            if ($element) {
+                $this->_soState['timeout_elemtext_id'] = $element->id;
+            }
+        }
+
+        // Register callback for display of protected files
+        add_file_display_callback(array('mimeTypes' => array('audio/mpeg')), 'soDisplayFile', self::$_callbackOptions);
+    }
 
     /**
      * Installs the StreamOnly Plugin
      *
-     * checks that the StreamOnly ItemType does not exist, then creates it
-     * (to ensure the integrity of the plugin, we want it to set up the db properly)
-     * creates a table in the database to store info about SO protected audio/mpeg files
-     * (table can be accessed with $db->getTable('StreamOnly'))
-     * initializes options with defaults for SO Items
+     * Checks that the StreamOnly ItemType does not exist, then creates it
+     * Creates a table in the database to store info about SO protected audio/mpeg files
+     *   (table can be accessed with $db->getTable('StreamOnly'))
+     * Initializes options with defaults for SO Items
+     * Creates the files/m3u/ directory, creates .htaccess and reserved.txt files in it
+     * Adds rule(s) to .htaccess file in Omeka root directory
      *
      * @param $pluginID (not used)
      * @throws Omeka_Plugin_Installer_Exception
@@ -356,13 +326,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         );
 
         // Create a table for the items of type StreamOnly
-        //
-        // Taken from Omeka install hook documentation
-        // *** http://omeka.org/forums-legacy/topic/plugin-modify-item-table/
-        // "create your own Model and table with the values, mapped to the item"
-        // id | item_id | value1 | value2 | etc
-
-
         $sql = "
         CREATE TABLE IF NOT EXISTS `$db->StreamOnlyModel` (
           `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -405,14 +368,16 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
 
     /**
+     * Uninstalls the plugin
+     *
+     * Removes the files/m3u/directory and all its files
+     * Removes options created by hookInstall() for storing defaults
+     * Removes the Rewrite rule(s) in the .htaccess file added by hookInstall()
+     * Removes the table in the database with info about SO protected audio/mpeg files
      * For each Item of Item Type StreamOnly
      *   Moves all files from the SO folder to the Omeka default uploads folder
      *   Resets the Item Type to NULL (undefined)
      * Removes the Item Type StreamOnly
-     *
-     * removes options created by hookInstall() for storing defaults
-     * removes the table in the database with info about SO protected audio/mpeg files
-     * removes the Rewrite rule in the .htaccess file added by hookInstall()
      *
      * Leaves in place the Elements unique to SO Item Type
      * Leaves in place the Element Texts for Items that were of SO Item Type
@@ -425,8 +390,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         $db = get_db();
 
-        // Remove all the files from the m3u directory under the files directory,
-        // then delete the directory
+        // Remove all files from the files/m3u/ directory, then delete the directory
         $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u/';
         $dir = opendir($m3uDir);
         if (!$dir) die("Can't find playlist directory"); // TODO Report Omeka Error
@@ -440,7 +404,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         delete_option(OPTION_FOLDER);
         delete_option(OPTION_TIMEOUT);
 
-
 //        // remove the Rewrite rule we added to the .htaccess file during install
 //        so_update_access('remove'); TODO restore when testing rule
 
@@ -448,7 +411,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // and move protected files from the SO folder to the upload folder
         // Remove the StreamOnly Item Type, and associated Item Type Elements
 
-        // Get the StreamOnly Item Type record
+        // Get the StreamOnly ItemType record
 
         $itemType = get_record('ItemType', array('name'=>SO_ITEM_TYPE_NAME));
         if ($itemType == NULL) {
@@ -457,7 +420,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             return;
         }
 
-        // Get all the Items of Item Type StreamOnly
+        // Get all the Items of ItemType StreamOnly
         $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$itemType->id));
 
         // For each Item, move the protected files from the StreamOnly folder to the default Omeka uploads folder
@@ -490,8 +453,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
     /**
      * Called to display the Configuration Form
-     * The needed Options will be solicited from the system administrator
-     * Appropriate instructions and warnings will be provided
      *
      * @params - none
      * @returns - none
@@ -507,7 +468,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     }
 
     /**
-     * Called after the Configuration Form is filled out
+     * Fires after the Configuration Form is filled out
      *
      * TODO How to report validation errors?
      *
@@ -538,36 +499,20 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookUpgrade()
     {
-
-        // Just checking that we got here.
-        echo("hookUpgrade");
-
+        return;
     }
 
     /****** ITEMS **********************************************************/
 
     /**
      * Fires before the record is saved in the Item table
-     * If this is an SO Item:
-     *   Determine why this Item's record is being updated
-     *   $this->$_soState['filelist'] contains files which were added to the Item
-     *   Move files in filelist based on the scenario
      *
-     * switch ($this->$_soState['operation'])
-     *   case update:
-     *   case -StreamOnly:
-     *     move protected files in filelist from Omeka to soRecord
-     *   case +StreamOnly:
-     *     move protected files in filelist from Omeka to soOption
-     *   case insert:
-     *   case delete:
-     *
-     *   TODO Might be the place to validate the fields
+     *   TODO Need to validate fields here
      *
      * @param $args
-     *   ->record  record of type Item
-     *   ->post array or FALSE [DO NOT USE]
-     *   ->insert bool (true if record is being inserted)
+     *   ['record']  record of type Item
+     *   ['post'] array or FALSE [DO NOT USE]
+     *   ['insert'] bool (true if record is being inserted)
      */
     public function hookBeforeSaveItem($args) {
 
@@ -591,6 +536,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Move files in filelist as appropriate for the scenario
         switch ($this->_soState['operation']) {
+
+            // move protected files in filelist from Omeka to soRecord
             case 'update':
             case '-StreamOnly':
                 // move protected files in filelist from Omeka to soRecord
@@ -599,6 +546,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                                 'dir'=>$soRecord->so_directory);
                 $this->_moveFiles(NULL, $source, $target);
                 break;
+
+            // move protected files in filelist from Omeka to soOption
             case '+StreamOnly':
                 // move protected files in filelist from Omeka to soOption
                 $source = array('which'=>'Omeka', 'dir' =>'');
@@ -606,38 +555,22 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                     'dir'=>$this->_soState['folder_option']);
                 $this->_moveFiles(NULL, $source, $target);
                 break;
+
+            // no action required
             case 'insert': // $this->_soState['filelist'] is always empty
             case 'delete': // $this->_soState['filelist'] is always empty
                 break;
         }
-
-        // Just checking that we got here.
-        echo("hookBeforeSaveItem: $item->id \n");
 
     }
 
     /**
      * Fires after the record is saved in the Item table
      *
-     * if this is an SO Item:
-     *   switch ($this->_soState['operation']) {
-     *     case 'insert':
-     *     case '+StreamOnly':
-     *       create SORecord based on ElemText/SOOption
-     *       break;
-     *     case '-StreamOnly':
-     *       move protected files from SORecord to Omeka
-     *       delete SORecord;
-     *       break;
-     *     case 'update':
-     *     case 'delete': // This will never happen
-     *       break;
-     *   }
-     *
      * @param $args
-     *   ->record  record of type Item
-     *   ->post array or FALSE [DO NOT USE]
-     *   ->insert bool (true if record is being inserted)
+     *   ['record']  record of type Item
+     *   ['post'] array or FALSE [DO NOT USE]
+     *   ['insert'] bool (true if record is being inserted)
      * @throws Omeka_Record_Exception
      * @throws Omeka_Validate_Exception
      */
@@ -650,6 +583,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Finalize the state of the StreamOnlyModel record for this Item
         switch ($this->_soState['operation']) {
+
+            // Create SORecord based on ElemText/SOOption
             case 'insert':
             case '+StreamOnly':
             $soRecord = new StreamOnlyModel(get_db());
@@ -674,7 +609,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                 $soRecord->so_licenses = $this->_soState['license_option'];
             }
 
-
             // If the user specified a timeout for this item, use it, otherwise use the default
             $soDirectory = get_record('ElementText',
                 array("record_id"=>$item->id, "element_id"=>$this->_soState['timeout_elemtext_id']));
@@ -689,8 +623,9 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
                 $soRecord->save();
                 break;
+
+            //  move protected files from SORecord to Omeka and delete SORecord;
             case '-StreamOnly':
-                // Move protected files from SORecord to Omeka
                 $soRecord = get_record(SO_PLUGIN_MODEL, array("item_id"=>$item->id));
                 $source = array('which'=>'StreamOnly',
                                 'dir'=>$soRecord->so_directory);
@@ -698,19 +633,17 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                 $this->_moveFiles($item, $source, $target);
                 $soRecord->delete();
                 break;
+
+            // no action required
             case 'update':
             case 'delete': // This will never happen
                 break;
         }
 
-         echo("hookAfterSaveItem: $item->id \n");
     }
 
     /**
      * Fires before the record is deleted from the Item table
-     *
-     * If this is an SO Item:
-     *   Record why this Item's record is being updated
      *
      * @param $args['record']  record of type Item
      */
@@ -722,9 +655,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // We are deleting the Item's record
         $this->_soState['operation'] = "delete";
-
-        // Just checking that we got here.
-        echo("hookBeforeDeleteItem: $item->id \n");
 
     }
 
@@ -743,75 +673,17 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // Delete the record for this Item found in the StreamOnlyModel table
         get_record(SO_PLUGIN_MODEL, array('item_id'=>$item->id))->delete();
 
-        // Just checking that we got here.
-        echo("hookAfterDeleteItem': $item->id \n");
-
     }
 
     /*****  FILES  ******************************************************/
 
     /**
-     * Fires before the record is saved in the Files table
-     * If inserting:
-     *   $args['record']->id is not yet available
-     *   the file has not yet been uploaded
-     *
-     * TODO probably don't need this hook
-     *
-     * @param $args
-     *   ->record  record of type File
-     *   ->post array or FALSE [DO NOT USE]
-     *   ->insert bool (true if record is being inserted)
-     */
-    public function hookBeforeSaveFile($args)
-    {
-
-        $file = $args['record'];
-
-        // check that this Item needs to be processed by the StreamOnly plugin
-        $item = $file->getItem();
-        if (!isSOItem($item)) return;
-
-        // check that this file is one we need to protect against downloading
-        if (!$this->_isProtectedFile($file)) return;
-
-        // Just checking that we got here.
-        echo("hookBeforeSaveFile: $file->filename \n");
-
-    }
-
-
-    /**
      * Fires after the record is saved in the Files table
      *
-     * $args['record']->id is available and
-     *   the file has been uploaded. Where it is depends
-     *   on the scenario.
-     *
-     * If a File is being inserted, and $this->_soState['operation'] == 'unknown',
-     *   hookBeforeSaveItem() has not yet been called, and
-     *   there is not enough information to know if the file needs to be moved
-     *   or where it should be moved to.
-     *   Append the record to $this->_soState['filelist'] and return.
-     *   Don't worry if the Item is StreamOnly or if this is a protected file.
-     *   That will be sorted out by other hooks and helper functions.
-     *
-     * logic for moving files, otherwise
-     *
-     * switch $this->_soState['operation']
-     *   case 'insert':
-     *   case '+StreamOnly':
-     *     move protected file from Omeka to SOOption
-     *   case 'update':
-     *     if $args['insert']
-     *       move protected file from Omeka to SORecord/SOOption
-     *   case '-StreamOnly':
-     *   case 'delete':  // Never happens
-     *
      * @param $args
-     *   ->record - record of type File
-     *   ->post - array (last POST command) or FALSE
-     *   ->insert - bool (true if record is being inserted)
+     *   ['record']  record of type File
+     *   ['post'] array or FALSE [DO NOT USE]
+     *   ['insert'] bool (true if record is being inserted)
      */
     public function hookAfterSaveFile($args) {
 
@@ -834,17 +706,19 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Leave the file in the appropriate place
         switch ($this->_soState['operation']) {
+
+            // move protected file from Omeka to SOOption
             case 'insert':
                 if (!$args['insert']) break; // no action the first time we're called
             case '+StreamOnly':
-                // move protected file from Omeka to SOOption
                 $sourceDir = $this->_buildPath('Omeka', '');
                 $targetDir = $this->_buildPath('StreamOnly', $this->_soState['folder_option']);
                 $this->_moveFile($file, $sourceDir, $targetDir);
                 break;
+
+            //if $args['insert'] move protected file from Omeka to SORecord/SOOption
             case 'update':
                 if ($args['insert']) {
-                    // Move protected files from Omeka to SORecord/SOOption
                     $sourceDir = $this->_buildPath('Omeka', '');
                     $soRecord = get_record(SO_PLUGIN_MODEL, array('item_id' => $item->id));
                     if ($soRecord) {
@@ -855,28 +729,17 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                     $this->_moveFile($file, $sourceDir, $targetDir);
                 }
                 break;
+
+            // no action needed
             case '-StreamOnly':
             case 'delete': // never happens
                 break;
             }
 
-        // Just checking that we got here.
-        echo("hookAfterSaveFile: $file->filename \n");
-
     }
 
     /**
      * Fires before the record is deleted from the Files table
-     *
-     * switch $this->_soState['operation']
-     *   case 'update':
-     *   case 'delete':
-     *   case '+StreamOnly':
-     *     move protected file from SORecord to Omeka
-     *   case '-StreamOnly':
-     *     move protected file from SOOption to Omeka
-     *   case 'insert': // never happens
-     *     break;
      *
      * @param $args['record']  record of type File
      */
@@ -894,115 +757,39 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Leave the file in the right place
         switch ($this->_soState['operation']) {
+            // move protected file from SORecord to Omeka
             case 'update':
             case 'delete':
             case '-StreamOnly':
-                // move protected file from SORecord to Omeka
                 $soRecord = get_record(SO_PLUGIN_MODEL, array('item_id'=>$item->id));
                 $sourceDir = $this->_buildPath('StreamOnly', $soRecord->so_directory);
                 $targetDir = $this->_buildPath('Omeka', '');
                 $this->_moveFile($file, $sourceDir, $targetDir);
                 break;
+
+            // move protected file from SOOption to Omeka
             case '+StreamOnly':
-                // move protected file from SOOption to Omeka
                 $sourceDir = $this->_buildPath('StreamOnly', $this->_soState['folder_option']);
                 $targetDir = $this->_buildPath('Omeka', '');
                 $this->_moveFile($file, $sourceDir, $targetDir);
                 break;
+
+            // no action required
             case 'insert': // never happens
                 break;
         }
-
-        echo("hookBeforeDeleteFile: $file->filename \n");
-    }
-
-    /**
-     * Fires after the record is deleted from the Files table
-     * The files have also been deleted
-     *
-     * // TODO probably won't need this hook
-     *
-     * @param $args['record']  record of type File
-     */
-    public function hookAfterDeleteFile($args) {
-
-        $file = $args['record'];
-
-        // check that this Item needs to be processed by the StreamOnly plugin
-        $item = $file->getItem();
-        if (!isSOItem($item)) return;
-
-        // check that this file is one we need to protect against downloading
-        if (!$this->_isProtectedFile($file)) return;
-
-        // Just checking that we got here.
-        echo("hookAfterDeleteFile: $file->filename \n");
 
     }
 
     /****** ELEMENT TEXTS ********************************************/
 
     /**
-     * Fires before the record is saved to the ItemTypesElement table
-     * If the record is new, the id will be NULL
-     * We only need to process the record if it is associated with
-     *   an Item of ItemType StreamOnly and
-     *   it is one of the fields stored in the StreamOnlyModel table.
-     *
-     * TODO This hook is probably not needed
-     *
-     * @param $args->record  record from the ElementTexts table
-     * @param $args->post    false or contains data from POST
-     * @param $args->insert  true if record is being created
-     *                       false if record is being updated
-     */
-    public function hookBeforeSaveElementText($args) {
-
-        // Get the ElementTexts record
-        $elemText = $args['record'];
-
-        // check that this Item needs to be processed by the StreamOnly plugin
-        $item = get_record_by_id('Item', $elemText->record_id);
-        if (!isSOItem($item)) return;
-
-        // Get the Element Type
-        $elemType = get_record_by_id("Element", $elemText->element_id)->name;
-
-        echo("hookBeforeSaveElementText: $elemType - $elemText->text\n");
-
-    }
-
-    /**
      * Fires after the record is saved to the ItemTypesElement table
-     * We only need to process the record if it is associated with
-     *   an Item of ItemType StreamOnly and
-     *   it is one of the fields stored in the StreamOnlyModel table.
      *
-     * Logic for updating SORecord, but only if SORecord exists
-     * In some cases SORecord will be created later by hookAfterSaveItem:
-     *
-     * if (field in SORecord != SOElemText)
-     *   field in SORecord = SOElemText
-     *   update SORecord
-     *
-     * Logic for moving files:
-     *
-     * switch ($_soState['operation'])
-     *   case 'insert':
-     *   case '+StreamOnly':
-     *     if (SOElemText != SOOption)
-     *       move protected files from SOOption to SOElemText
-     *   case 'update':
-     *    if (SOMRecord != SODElemText)
-     *      move files from SOMRecord to SODElemText
-     *      update SOMRecord
-     *   case '-StreamOnly':
-     *   case 'delete':
-     *
-     * @param $args->record  record from the ElementTexts table
-     * @param $args->post    false or contains data from POST
-     * @param $args->insert  true if record is being created
-     *                       false if record is being updated
+     * @param $args
+     *   ['record'] record of type ElementText
+     *   ['post'] array or FALSE [DO NOT USE]
+     *   ['insert'] bool (true if record is being inserted)
      */
     public function hookAfterSaveElementText($args) {
 
@@ -1021,6 +808,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             case ELEMENT_FOLDER:
                 switch ($this->_soState['operation']) {
 
+                    // if (SOElemText != SOOption) move protected files from SOOption to SOElemText
                     case 'insert':
                     case '+StreamOnly':
                         // If needed, move protected files from SOOption to SOElemText
@@ -1029,11 +817,10 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                             $target = array("which"=>'StreamOnly', "dir"=>$elemText->text);
                             $this->_moveFiles($item, $source, $target);
                         }
-                        // SORecord doesn't exist yet, will be created by hookAfterSaveItem()
                         break;
 
+                    // If needed move files from SORecord to SOElemtext and update SORecord
                     case 'update':
-                        // If needed move files from SORecord to SOElemtext and update SORecord
                         $soRecord = get_record(SO_PLUGIN_MODEL, array("item_id"=>$elemText->record_id));
                         if ($elemText->text != $soRecord->so_directory) {
                             $source = array("which"=>'StreamOnly', "dir"=>$soRecord->so_directory);
@@ -1043,6 +830,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                             $soRecord->save();
                         }
                         break;
+
+                    // no action needed
                     case '-StreamOnly':
                     case 'delete':
                         break;
@@ -1079,59 +868,15 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                 }
                 break;
 
+            // not a field that affects StreamOnly Items, no action required
             default:
                 break;
         }
 
-        echo("hookAfterSaveElementText: $elemType - $elemText->text\n");
-    }
-
-    /**
-     * Fires before the record is deleted from the ElementTexts table
-     *
-     * TODO hook probably not needed
-     *
-     * @param $args['record']  record from the ElementTexts table
-     */
-    public function hookBeforeDeleteElementText($args) {
-
-        // Get the ElementTexts record
-        $elemText = $args['record'];
-
-        // check that this Item needs to be processed by the StreamOnly plugin
-        $item = get_record_by_id('Item', $elemText->record_id);
-        if (!isSOItem($item)) return;
-
-        // Get the Element Type
-        $elemType = get_record_by_id("Element", $elemText->element_id)->name;
-
-        echo("hookBeforeDeleteElementText: $elemType - $elemText->text\n");
     }
 
     /**
      * Fires after the record is deleted from the ElementTexts table
-     * We only need to process the record if it is associated with
-     *   an Item of ItemType StreamOnly and
-     *   it is one of the fields stored in the StreamOnlyModel table.
-     *
-     * Logic for updating SORecord
-     *   but only if SORecord will not be updated or deleted later by hookAfterSaveItem()
-     *
-     * if (field in SORecord ~= $this->_soState['Option'])
-     *   field in SORecord = $this->_soState['Option']
-     *   update SORecord
-     *
-     * Logic for moving files:
-     *
-     * switch ($this->_soState['operation'])
-     *   case 'update':
-     *     if (SORecord != SOOption)
-     *       move protected files from SORecord to SOOption
-     *       update SORecord to SOOption
-     *   case 'insert': // never happens
-     *   case 'delete': // no action needed
-     *   case '+StreamOnly': // no action needed
-     *   case '-StreamOnly': // no action needed
      *
      * @param $args['record']  record from the ElementTexts table
      */
@@ -1151,8 +896,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
             case ELEMENT_FOLDER:
                 switch ($this->_soState['operation']) {
+                    // If needed, move protected files from SORecord to SOOption and update SORecord
                     case 'update':
-                        // If needed, move protected files from SORecord to SOOption and update SORecord
                         $soRecord = get_record(SO_PLUGIN_MODEL, array("item_id"=>$elemText->record_id));
                         if ($soRecord->so_directory != $this->_soState['folder_option']) {
                             $source = array("which"=>'StreamOnly', "dir"=>$soRecord->so_directory);
@@ -1162,10 +907,12 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                             $soRecord->save();
                         }
                         break;
+
+                    // no action needed
                     case 'insert': // never happens
-                    case 'delete': // no action needed
-                    case '+StreamOnly': // no action needed
-                    case '-StreamOnly': // no action needed
+                    case 'delete':
+                    case '+StreamOnly':
+                    case '-StreamOnly':
                         break;
                 }
                 break;
@@ -1180,6 +927,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                             $soRecord->save();
                         }
                         break;
+
+                    // no action needed
                     case 'insert': // never happens
                     case 'delete': // no action needed
                     case '+StreamOnly': // no action needed
@@ -1209,6 +958,5 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                 break;
         }
 
-        echo("hookAfterDeleteElementText: $elemType - $elemText->text\n");
     }
 }
