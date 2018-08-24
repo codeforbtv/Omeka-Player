@@ -599,19 +599,19 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             }
 
             // If the user specified # licenses for this item, use it, otherwise use the default
-            $soDirectory = get_record('ElementText',
+            $soLicenses = get_record('ElementText',
                 array("record_id"=>$item->id, "element_id"=>$this->_soState['license_elemtext_id']));
-            if ($soDirectory) {
-                $soRecord->so_licenses = $soDirectory->text;
+            if ($soLicenses) {
+                $soRecord->so_licenses = $soLicenses->text;
             } else {
                 $soRecord->so_licenses = $this->_soState['license_option'];
             }
 
             // If the user specified a timeout for this item, use it, otherwise use the default
-            $soDirectory = get_record('ElementText',
+            $soTimeout = get_record('ElementText',
                 array("record_id"=>$item->id, "element_id"=>$this->_soState['timeout_elemtext_id']));
-            if ($soDirectory) {
-                $soRecord->so_directory = $soDirectory->text;
+            if ($soTimeout) {
+                $soRecord->so_timeout = $soTimeout->text;
             } else {
                 $soRecord->so_timeout = $this->_soState['timeout_option'];
             }
