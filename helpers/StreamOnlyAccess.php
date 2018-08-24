@@ -11,7 +11,7 @@ function so_update_access ($action) {
 
     $pathname = _remove_nodes(dirname(__FILE__), 3);
 
-    $old_filename = $pathname . "/" . HTACCESS;
+    $old_filename = BASE_DIR . DIRECTORY_SEPARATOR . HTACCESS;
     $old_handle = fopen($old_filename, "r");
     if (!$old_handle) return;
 

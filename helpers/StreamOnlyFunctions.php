@@ -7,24 +7,6 @@
  */
 
 /**
- * Removes some number of directories from the end of a file path.
- * Helpful for moving up the tree structure of the file system.
- *
- * @param $path string, filepath
- * @param $count - int, # directories to remove from the end of $path
- * @return null|string|string[]
- */
-function _remove_nodes($path, $count) {
-
-    while ($count > 0) {
-        $path = preg_replace("(/[\w]+$)", "", $path, 1);
-        $count--;
-    }
-
-    return $path;
-}
-
-/**
  * Builds the HTML string needed to customize the audio element
  *
  * @param $props - Properties to customize display of audio files
@@ -93,7 +75,7 @@ function soDisplayFile($record, $props)
     $soDirectory = $soRecord['so_directory'];
     $timeout = $soRecord['so_timeout'];
     $licenses = $soRecord['so_licenses'];
-    $m3uDir = BASE_DIR . '/files/m3u/';
+    $m3uDir = FILES_DIR . '/m3u/';
     $mp3Dir = "/$soDirectory/";
     $now = time();
 
@@ -170,7 +152,7 @@ function soDisplayFile($record, $props)
         $expires    = $now + (int)$timeout - 2;
         $audioProps  = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
         $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
-        $url = WEB_PLUGIN . "/StreamOnly/scripts/play.php/$m3uFile/";
+        $url = WEB_PLUGIN . "/" . SO_PLUGIN_NAME . "/scripts/play.php/$m3uFile/";
 
         $html  = "\n" . "<audio $audioProps>" . "\n";
         $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?

@@ -9,6 +9,13 @@
  * Otherwise we can't choose to output an audio file instead of HTML.
  */
 
+// Must match definitions found in helpers/StreamOnlyConstants.php
+// Info stored in .m3u file
+const M3U_FILENAME = 0;
+const M3U_FILEID   = 1;
+const M3U_EXPIRES  = 2;
+const M3U_LICENSES = 3;
+
 /**
  * Removes some number of directories from the end of a file path.
  * Helpful for moving up the tree structure of the file system.
@@ -17,14 +24,6 @@
  * @param $count - int, # directories to remove from the end of $path
  * @return null|string|string[]
  */
-
-// Must match definitions found in helpers/StreamOnlyConstants.php
-// Info stored in .m3u file
-const M3U_FILENAME = 0;
-const M3U_FILEID   = 1;
-const M3U_EXPIRES  = 2;
-const M3U_LICENSES = 3;
-
 
 function _remove_nodes($path, $count) {
 
@@ -38,9 +37,9 @@ function _remove_nodes($path, $count) {
 
 error_reporting(E_ALL);
 
-$m3uDir = _remove_nodes(dirname(__FILE__), 3) . DIRECTORY_SEPARATOR .
-                        "files" . DIRECTORY_SEPARATOR .
-                        "m3u";
+$m3uDir = _remove_nodes(dirname(__FILE__), 3)
+                        . DIRECTORY_SEPARATOR ."files"
+                        . DIRECTORY_SEPARATOR ."m3u";
 
 // TODO better error handling
 if (!file_exists($m3uDir)) {
