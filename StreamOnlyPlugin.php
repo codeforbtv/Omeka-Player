@@ -158,10 +158,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     private function _buildPath($which, $folder) {
         switch ($which) {
             case 'Omeka':
-                $path = _remove_nodes(dirname(__FILE__), 2)
-                    . DIRECTORY_SEPARATOR . 'files'
-                    . DIRECTORY_SEPARATOR . 'original'
-                    . DIRECTORY_SEPARATOR;
+                $path = FILES_DIR . DIRECTORY_SEPARATOR
+                     . 'original' . DIRECTORY_SEPARATOR;
                 break;
             case 'StreamOnly':
                 $path = DIRECTORY_SEPARATOR . $folder
@@ -349,7 +347,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         set_option(OPTION_TIMEOUT, DEFAULT_TIMEOUT);
 
         // Create the m3u directory under the files directory, and create the .htaccess file there
-        $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u';
+        $m3uDir = FILES_DIR . '/m3u';
         if (!mkdir($m3uDir, 0777)) {               // TODO determine appropriate permissions
             die("Couldn't create m3u directory");  // TODO use Omeka error reporting
         }
@@ -391,7 +389,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         $db = get_db();
 
         // Remove all files from the files/m3u/ directory, then delete the directory
-        $m3uDir = _remove_nodes(dirname(__FILE__), 2) . '/files/m3u/';
+        $m3uDir = FILES_DIR . '/m3u/';
         $dir = opendir($m3uDir);
         if (!$dir) die("Can't find playlist directory"); // TODO Report Omeka Error
         while ($file = readdir($dir)) {
@@ -601,19 +599,19 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             }
 
             // If the user specified # licenses for this item, use it, otherwise use the default
-            $soDirectory = get_record('ElementText',
+            $soLicenses = get_record('ElementText',
                 array("record_id"=>$item->id, "element_id"=>$this->_soState['license_elemtext_id']));
-            if ($soDirectory) {
-                $soRecord->so_licenses = $soDirectory->text;
+            if ($soLicenses) {
+                $soRecord->so_licenses = $soLicenses->text;
             } else {
                 $soRecord->so_licenses = $this->_soState['license_option'];
             }
 
             // If the user specified a timeout for this item, use it, otherwise use the default
-            $soDirectory = get_record('ElementText',
+            $soTimeout = get_record('ElementText',
                 array("record_id"=>$item->id, "element_id"=>$this->_soState['timeout_elemtext_id']));
-            if ($soDirectory) {
-                $soRecord->so_directory = $soDirectory->text;
+            if ($soTimeout) {
+                $soRecord->so_timeout = $soTimeout->text;
             } else {
                 $soRecord->so_timeout = $this->_soState['timeout_option'];
             }
@@ -758,6 +756,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // Leave the file in the right place
         switch ($this->_soState['operation']) {
             // move protected file from SORecord to Omeka
+            case 'unknown':
             case 'update':
             case 'delete':
             case '-StreamOnly':
@@ -795,6 +794,9 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Get the ElementTexts record
         $elemText = $args['record'];
+
+        // Check that this ElementText is associated with an Item
+        if ($elemText->record_type != "Item") return;
 
         // check that this Item needs to be processed by the StreamOnly plugin
         $item = get_record_by_id('Item', $elemText->record_id);

@@ -148,7 +148,7 @@ function isSOItem($item) {
 
     // The Item Type is currently StreamOnly,
     //   or in the process of being changed to StreamOnly
-    if ($item->getItemType()->name == SO_ITEM_TYPE_NAME)
+    if ((($itemType = $item->getItemType()) != NULL) && ($itemType->name == SO_ITEM_TYPE_NAME))
         return true;
 
     // The user is creating an Item of a different Item Type
