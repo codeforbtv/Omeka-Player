@@ -58,11 +58,18 @@ const M3U_FILEID   = 1;
 const M3U_EXPIRES  = 2;
 const M3U_LICENSES = 3;
 
+// Directory for .m3u files
+const SO_PLAYLIST = 'm3u';
+
+// File extension for .m3u files
+const SO_PLAYLIST_EXT = '.m3u';
+
 // .htaccess rule
-const HTACCESS = '.htaccess-old';
-const HTACCESS_TMP = '.htaccess-tmp';
-const REWRITE_CONDITION = "RewriteCond %{REQUEST_FILENAME} -f\n";
-const REWRITE_RULE = "RewriteRule ^plugins/StreamOnly/scripts/.*\.php$ - [L]\n";
+const HTACCESS                = '.htaccess';
+const HTACCESS_TMP            = '.htaccess-tmp';
+const REWRITE_OMEKA_CONDITION = "RewriteCond %{REQUEST_FILENAME} -f\n";
+const REWRITE_OMEKA_RULE      = "RewriteRule .* index.php\n";
+const REWRITE_SO_CONDITION    = "RewriteCond %{REQUEST_URI} !plugins/StreamOnly/scripts/play.php\n";
 
 
 // .htaccess file for files/m3u/ directory
@@ -82,5 +89,4 @@ AddType audio/mpeg mp3
     Deny from all
 </IfModule>";
 
-const SO_XSENDFILE_ON =
-"XSendFile on";
+const SO_XSENDFILE_ON = "XSendFile on\n";
