@@ -13,7 +13,7 @@
     require_once dirname(__FILE__) . '/helpers/StreamOnlyConstants.php';
     require_once dirname(__FILE__) . '/helpers/StreamOnlyFunctions.php';
     require_once dirname(__FILE__) . '/helpers/StreamOnlyItemType.php';
-//    require_once dirname(__FILE__) . '/helpers/StreamOnlyAccess.php'; TODO restore when testing rule
+    require_once dirname(__FILE__) . '/helpers/StreamOnlyAccess.php';
 
 /**
  * StreamOnly plugin.
@@ -304,13 +304,19 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         $db = $this->_db;
 
+        // Modify the .htaccess file so the script
+        //   that downloads protected files can run
+        if (!so_update_access('add')) {
+            throw new Omeka_Plugin_Installer_Exception(__(
+                'Cannot modify the .htaccess file.'));
+        }
+
         // Check for existing Item Type, to avoid "duplicate name" death
-        $itemTypeTable = $db->getTable('ItemType');
-        $itemTypeList = $itemTypeTable->findBy(array('name'=>SO_ITEM_TYPE_NAME));
+        $itemTypeList = $db->getTable('ItemType')->findBy(array('name'=>SO_ITEM_TYPE_NAME));
         if (!empty($itemTypeList)) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                '['. SO_PLUGIN_NAME . ' Plugin]: The Item Type ' .
-                SO_ITEM_TYPE_NAME . ' already exists.'));
+                '[%s1 Plugin]: The Item Type %s2 already exists.',
+                SO_PLUGIN_NAME, SO_ITEM_TYPE_NAME));
         }
 
         // Create the StreamOnly Item Type
@@ -347,20 +353,21 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         set_option(OPTION_TIMEOUT, DEFAULT_TIMEOUT);
 
         // Create the m3u directory under the files directory, and create the .htaccess file there
-        $m3uDir = FILES_DIR . '/m3u';
-        if (!mkdir($m3uDir, 0777)) {               // TODO determine appropriate permissions
-            die("Couldn't create m3u directory");  // TODO use Omeka error reporting
+        $m3uDir = FILES_DIR . DIRECTORY_SEPARATOR . SO_PLAYLIST;
+        if (!mkdir($m3uDir, 0700)) {
+            throw new Omeka_Plugin_Installer_Exception(__(
+                '[%s Plugin]: Could not create the playlist directory.',
+                SO_PLUGIN_NAME));
         }
+
+        // TODO Recover from errors
         // create the .htaccess file to protect the .m3u files
-        $handle = fopen($m3uDir . "/.htaccess", "w");
+        $handle = fopen($m3uDir . DIRECTORY_SEPARATOR . HTACCESS, "w");
         fwrite($handle, SO_DENY_ACCESS);
         fclose($handle);
         // Create an empty file for storing list of reserved files
-        $handle = fopen($m3uDir . "/reserved.txt", "w");
+        $handle = fopen($m3uDir . DIRECTORY_SEPARATOR . "reserved.txt", "w");
         fclose($handle);
-
-//        // Add new Rewrite rule to .htaccess file TODO restore when testing rule
-//        so_update_access('add');
 
     }
 
@@ -370,7 +377,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      *
      * Removes the files/m3u/directory and all its files
      * Removes options created by hookInstall() for storing defaults
-     * Removes the Rewrite rule(s) in the .htaccess file added by hookInstall()
+     * Removes the statements in the .htaccess file in the Omeka root directory
+     *   that were added by hookInstall()
      * Removes the table in the database with info about SO protected audio/mpeg files
      * For each Item of Item Type StreamOnly
      *   Moves all files from the SO folder to the Omeka default uploads folder
@@ -380,30 +388,37 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * Leaves in place the Elements unique to SO Item Type
      * Leaves in place the Element Texts for Items that were of SO Item Type
      *
-     * * @param $args
-     * * @error - if StreamOnly Item Type is missing, returns with an error message
+     * @param $args
+     * @throws Omeka_Plugin_Installer_Exception
      */
     public function hookUninstall($args)
     {
 
         $db = get_db();
 
-        // Remove all files from the files/m3u/ directory, then delete the directory
-        $m3uDir = FILES_DIR . '/m3u/';
-        $dir = opendir($m3uDir);
-        if (!$dir) die("Can't find playlist directory"); // TODO Report Omeka Error
-        while ($file = readdir($dir)) {
-            unlink($m3uDir . $file);
+        // undo the changes hookInstall() made to the .htaccess file
+        if (!so_update_access('remove')) {
+            throw new Omeka_Plugin_Installer_Exception(__(
+                'Cannot modify the .htaccess file.'));
         }
-        rmdir($m3uDir);
+
+        // Remove all files from the files/m3u/ directory, then delete the directory
+        $m3uDir = FILES_DIR . DIRECTORY_SEPARATOR . SO_PLAYLIST. DIRECTORY_SEPARATOR;
+        $dir = opendir($m3uDir);
+        if (!$dir) {
+            throw new Omeka_Plugin_Installer_Exception(__(
+                '[%s Plugin]: Cannot find playlist directory.',
+                SO_PLUGIN_NAME));
+        }
+        while ($file = readdir($dir)) { // TODO Deal with errors
+            unlink($m3uDir . $file);    // TODO Deal with errors
+        }
+        rmdir($m3uDir);                 // TODO Deal with errors
 
         // Remove the option values from the db table
         delete_option(OPTION_LICENSES);
         delete_option(OPTION_FOLDER);
         delete_option(OPTION_TIMEOUT);
-
-//        // remove the Rewrite rule we added to the .htaccess file during install
-//        so_update_access('remove'); TODO restore when testing rule
 
         // Remove the references to the Item Type from all Items as needed,
         // and move protected files from the SO folder to the upload folder
@@ -418,6 +433,9 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             return;
         }
 
+        // TODO This could return a very large # of Items
+        // TODO Consider iterating using get_records()
+        // TODO https://omeka.readthedocs.io/en/latest/Reference/libraries/globals/get_records.html
         // Get all the Items of ItemType StreamOnly
         $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$itemType->id));
 
@@ -431,6 +449,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // Delete all the ItemTypesElements rows joined to this type
         // findBy() does not seem to be implemented for this Table
+        // TODO Consider using get_records()
+        // TODO https://omeka.readthedocs.io/en/latest/Reference/libraries/globals/get_records.html
         $itemTypesElementsList = $db->getTable('ItemTypesElements')->findBySql('item_type_id = ?', array( (int) $itemType->id));
         foreach ($itemTypesElementsList as $itemTypeElement) {
             $itemTypeElement->delete();
