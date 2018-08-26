@@ -70,40 +70,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     public $uninstall_message = "All protected files will be moved to the default upload directory. Visitors to the site will be able to download them. All Items of Item Type StreamOnly will be set to undefined.";
 
     /**
-     * Get the fields from the $_POST variable that are useful for the StreamOnly plugin
-     *
-     * // TODO Is there ever a time when the Element Type for an Item Type is not found in $_POST?
-     * // TODO Should we be checking for empty()?
-     * // TODO Should we be filling in default values? leaving array elements unset?
-     *
-     * @uses $_POST
-     * @return array - the keys are the field names of the forms, the values are the user entries
-     *                 for the form fields (in Item Type Metadata) that affect SO Item behavior
-     */
-    private function _getPostData(){
-
-        $licenseElementId = get_record('Element', array('name'=>ELEMENT_LICENSE_COUNT))->id;
-        if (isset($_POST['Elements'][$licenseElementId])) {
-            $data[ELEMENT_LICENSE_COUNT_FIELD]=$_POST['Elements'][$licenseElementId][0]['text'];
-        } else {
-            $data[ELEMENT_LICENSE_COUNT_FIELD] = DEFAULT_LICENSES;
-        }
-
-        $folderElementId  = get_record('Element', array('name'=>ELEMENT_FOLDER))->id;
-        if (isset($_POST['Elements'][$folderElementId])) {
-            $data[ELEMENT_FOLDER_FIELD]=$_POST['Elements'][$folderElementId][0]['text'];
-        } else {
-            $data[ELEMENT_FOLDER_FIELD] = "";
-        }
-
-        // TODO Get value of timeout from user
-        $data[ELEMENT_TIMEOUT_FIELD] = DEFAULT_TIMEOUT;
-
-        return $data;
-
-    }
-
-    /**
      * Check that the user input is valid
      *
      * TODO output error messages as needed
@@ -308,15 +274,14 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         //   that downloads protected files can run
         if (!so_update_access('add')) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                'Cannot modify the .htaccess file.'));
+                'Cannot modify the .htaccess file'));
         }
 
         // Check for existing Item Type, to avoid "duplicate name" death
         $itemTypeList = $db->getTable('ItemType')->findBy(array('name'=>SO_ITEM_TYPE_NAME));
         if (!empty($itemTypeList)) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                '[%s1 Plugin]: The Item Type %s2 already exists.',
-                SO_PLUGIN_NAME, SO_ITEM_TYPE_NAME));
+                'The Item Type %s already exists', SO_ITEM_TYPE_NAME));
         }
 
         // Create the StreamOnly Item Type
@@ -356,19 +321,16 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         $m3uDir = FILES_DIR . DIRECTORY_SEPARATOR . SO_PLAYLIST;
         if (!mkdir($m3uDir, 0700)) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                '[%s Plugin]: Could not create the playlist directory.',
-                SO_PLUGIN_NAME));
+                'Could not create the playlist directory'));
         }
 
         // TODO Recover from errors
         // create the .htaccess file to protect the .m3u files
-        $handle = fopen($m3uDir . DIRECTORY_SEPARATOR . HTACCESS, "w");
-        fwrite($handle, SO_DENY_ACCESS);
-        fclose($handle);
+        file_put_contents($m3uDir . DIRECTORY_SEPARATOR . HTACCESS, SO_DENY_ACCESS);
         // Create an empty file for storing list of reserved files
-        $handle = fopen($m3uDir . DIRECTORY_SEPARATOR . "reserved.txt", "w");
-        fclose($handle);
-
+        file_put_contents($m3uDir . DIRECTORY_SEPARATOR . SO_RESERVED_FILES, "");
+        // create the file with the custom msg
+        file_put_contents($m3uDir . DIRECTORY_SEPARATOR . SO_CUSTOM_MSG_FILE, SO_CUSTOM_MSG_TEXT);
     }
 
 
@@ -399,7 +361,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         // undo the changes hookInstall() made to the .htaccess file
         if (!so_update_access('remove')) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                'Cannot modify the .htaccess file.'));
+                'Cannot modify the .htaccess file'));
         }
 
         // Remove all files from the files/m3u/ directory, then delete the directory
@@ -407,8 +369,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         $dir = opendir($m3uDir);
         if (!$dir) {
             throw new Omeka_Plugin_Installer_Exception(__(
-                '[%s Plugin]: Cannot find playlist directory.',
-                SO_PLUGIN_NAME));
+                'Cannot find playlist directory'));
         }
         while ($file = readdir($dir)) { // TODO Deal with errors
             unlink($m3uDir . $file);    // TODO Deal with errors
@@ -429,8 +390,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         $itemType = get_record('ItemType', array('name'=>SO_ITEM_TYPE_NAME));
         if ($itemType == NULL) {
             // Someone deleted the StreamOnly Item Type.
-            // TODO display an Omeka error message
-            return;
+            throw new Omeka_Plugin_Installer_Exception(__(
+                'Cannot complete uninstall; StreamOnly Item Type has been deleted'));
         }
 
         // TODO This could return a very large # of Items
@@ -478,10 +439,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookConfigForm()
     {
 
-        $defaultLicenses = get_option(OPTION_LICENSES);
-        $defaultFolder   = get_option(OPTION_FOLDER);
-        $timeout         = get_option(OPTION_TIMEOUT);
-
         include 'config_form.php';
     }
 
@@ -491,24 +448,41 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * TODO How to report validation errors?
      *
      * @param - none
-     * @return - none
      * @global - uses the $_POST server global variable
      */
     public function hookConfig()
     {
-        $postData = $this->_getPostData();
 
-        // TODO Need to sanitize the $_POST variables???
-        if (!$this->_soValidateConfigFields($postData)) return;
+        // $record->addError('field_name', __('Error message'));
+        // $record->addError(OPTION_LICENSE_COUNT_FIELD, __('Error message'));
+        // $record->addError(OPTION_FOLDER_FIELD,        __('Error message'));
+        // $record->addError(OPTION_TIMEOUT_FIELD,       __('Error message'));
 
+        // TODO Sanitize the $_POST variables???
+        // TODO Validate the $_POST variables
+        // TODO How to report errors?
+
+        // should be an integer
         $defaultLicenses = $_POST[OPTION_LICENSES];
+
+        // should be a valid directory with permissions 0700 or less restrictive
+        // length of path + filename should be less than 255 chars
         $defaultFolder   = $_POST[OPTION_FOLDER];
+
+        // should be an integer
         $timeout         = $_POST[OPTION_TIMEOUT];
+
+        // not sure how to validate - maybe anything goes?
+        $customMessage   = $_POST[OPTION_CUSTOM_MSG];
 
         set_option(OPTION_LICENSES, $defaultLicenses);
         set_option(OPTION_FOLDER, $defaultFolder);
         set_option(OPTION_TIMEOUT, $timeout);
 
+        file_put_contents(FILES_DIR . DIRECTORY_SEPARATOR .
+                          SO_PLAYLIST . DIRECTORY_SEPARATOR .
+                          SO_CUSTOM_MSG_FILE,
+                          $customMessage);
     }
 
     /**
