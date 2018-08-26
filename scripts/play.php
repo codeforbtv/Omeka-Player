@@ -56,10 +56,10 @@ if (preg_match("#/(\d+).m3u/$#", $_SERVER['PATH_INFO'], $matches)) {
 $m3uFile = $m3uDir . DIRECTORY_SEPARATOR . $m3uID . ".m3u";
 
 $playlist = file($m3uFile);
+
+// Handle unauthorized attempt to download the file.
 if (!$playlist) {
-    // Playlist does not exist. Either our access to it expired,
-    //  (hopefully the JS routines will update the HTML before this happens)
-    //  or this is an unauthorized attempt to download the file.
+    readfile($m3uDir . DIRECTORY_SEPARATOR . "custom_msg.txt");
     exit;
 }
 
