@@ -35,7 +35,7 @@ function _remove_nodes($path, $count) {
     return $path;
 }
 
-error_reporting(E_ALL);
+// error_reporting(E_ALL);
 
 $m3uDir = _remove_nodes(dirname(__FILE__), 3)
                         . DIRECTORY_SEPARATOR ."files"
