@@ -25,6 +25,14 @@ function so_elements(){
 
     // List of default 'Item Elements' for 'Item Type Metadata' of "StreamOnly"
     // Using the same list as for 'Item Type' of "Sound" for now
+    // The same explanatory text is displayed in the Configuration Menu
+    //   except there the descriptions of Item Element specific to
+    //   Item Type StreamOnly can link to the user documentation.
+    // Not sure why, but the HTML in SO_SEE_USER_DOCUMENTATION
+    //   does not display correctly here
+    //   (it is output by a JS routine),
+    //   so instead we use SO_SEE_CONFIGURATION_PAGE
+    //   which refers user to the Plugin Configuration page
     $so_item_elements = array(
         array(
             'name'=>ELEMENT_TRANSCRIPTION,
@@ -48,17 +56,17 @@ function so_elements(){
         ),
         array(
             'name'=>ELEMENT_FOLDER,
-            'description'=>ELEMENT_FOLDER_DESCRIPTION,
+            'description'=>ELEMENT_FOLDER_DESCRIPTION . SO_SEE_CONFIGURATION_PAGE,
             'order'=>5
         ),
         array(
             'name'=>ELEMENT_LICENSE_COUNT,
-            'description'=>ELEMENT_LICENSE_COUNT_DESCRIPTION,
+            'description'=>ELEMENT_LICENSE_COUNT_DESCRIPTION . SO_SEE_CONFIGURATION_PAGE,
             'order'=>6
         ),
         array(
             'name'=>ELEMENT_TIMEOUT,
-            'description'=>ELEMENT_TIMEOUT_DESCRIPTION,
+            'description'=>ELEMENT_TIMEOUT_DESCRIPTION . SO_SEE_CONFIGURATION_PAGE,
             'order'=>7
         )
     );

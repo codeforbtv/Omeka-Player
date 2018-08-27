@@ -11,6 +11,9 @@ $customMessage   = file_get_contents(FILES_DIR . DIRECTORY_SEPARATOR
 <div id="stream-only-plugin-theme-warning">
     <p><?php echo __(SO_THEME_WARNING);?></p>
 </div>
+<div id="stream-only-plugin-documentation">
+    <p><?php echo __(SO_SEE_USER_DOCUMENTATION)?></p>
+</div>
 
 <div id="stream-only-plugin-settings">
 
@@ -22,7 +25,7 @@ $customMessage   = file_get_contents(FILES_DIR . DIRECTORY_SEPARATOR
         <div class="inputs five columns omega">
             <?php echo $view->formText(OPTION_LICENSES, $defaultLicenses); ?>
         </div>
-        <div><?php echo __(ELEMENT_LICENSE_COUNT_DESCRIPTION);?></div>
+        <div><?php echo __(ELEMENT_LICENSE_COUNT_DESCRIPTION . SO_SEE_USER_DOCUMENTATION);?></div>
     </div>
 
     <h2><?php echo __(ELEMENT_FOLDER_TITLE ); ?></h2>
@@ -33,7 +36,7 @@ $customMessage   = file_get_contents(FILES_DIR . DIRECTORY_SEPARATOR
         <div class="inputs five columns omega">
             <?php echo $view->formText(OPTION_FOLDER, $defaultFolder); ?>
         </div>
-        <div><?php echo __(ELEMENT_FOLDER_DESCRIPTION_DEFAULT);?></div>
+        <div><?php echo __(ELEMENT_FOLDER_DESCRIPTION . SO_SEE_USER_DOCUMENTATION);?></div>
     </div>
 
     <h2><?php echo __(ELEMENT_TIMEOUT_TITLE); ?></h2>
@@ -44,7 +47,7 @@ $customMessage   = file_get_contents(FILES_DIR . DIRECTORY_SEPARATOR
         <div class="inputs five columns omega">
             <?php echo $view->formText(OPTION_TIMEOUT, $timeout); ?>
         </div>
-        <div><?php echo __(ELEMENT_TIMEOUT_DESCRIPTION);?></div>
+        <div><?php echo __(ELEMENT_TIMEOUT_DESCRIPTION . SO_SEE_USER_DOCUMENTATION);?></div>
     </div>
 
     <h2><?php echo __(ELEMENT_CUSTOM_MSG_TITLE); ?></h2>
@@ -55,7 +58,7 @@ $customMessage   = file_get_contents(FILES_DIR . DIRECTORY_SEPARATOR
         <div class="inputs five columns omega">
             <?php echo $view->formTextarea(OPTION_CUSTOM_MSG, $customMessage); ?>
         </div>
-        <div><?php echo __(ELEMENT_CUSTOM_MSG_DESCRIPTION);?></div>
+        <div><?php echo __(ELEMENT_CUSTOM_MSG_DESCRIPTION . SO_SEE_USER_DOCUMENTATION);?></div>
     </div>
 
 </div>

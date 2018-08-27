@@ -21,6 +21,17 @@ const SO_THEME_WARNING =
     "when s/he clicks on links to audio files stored as " .
     "Items of Item Type StreamOnly.";
 
+// Links to the User Documentation: Configuration page
+// Displayed at the top of config_form.php
+// Appended to each description of an Item Element unique to StreamOnly Item Type
+const SO_SEE_USER_DOCUMENTATION =
+"Please see " .
+"<a href='https://github.com/codeforbtv/StreamOnly/wiki/User-documentation:-Configuration' target='_blank'>" .
+"User Documentation: Configuration" .
+"</a>";
+const SO_SEE_CONFIGURATION_PAGE =
+"Please see the Plugin Configuration page for more information.";
+
 // Elements made available for Items of ItemType StreamOnly
 // Not critical to the plugin
 const ELEMENT_TRANSCRIPTION = 'Transcription';
@@ -40,30 +51,31 @@ const ELEMENT_BIT_RATE_FIELD = 'bit_rate/frequency';
 // CRITICAL to the plugin
 const ELEMENT_LICENSE_COUNT_TITLE = 'License Settings';
 const ELEMENT_LICENSE_COUNT = '# Licenses (default)';
-const ELEMENT_LICENSE_COUNT_DESCRIPTION = 'Number of simultaneous listeners permitted by licensing';
+const ELEMENT_LICENSE_COUNT_DESCRIPTION =
+    "Number of simultaneous listeners permitted by licensing. " .
+    'The default number is set during configuration of the plugin, ' .
+    "but can be overridden on an Item-by-Item basis. ";
 const ELEMENT_LICENSE_COUNT_FIELD = 'stream-only-license-count';
 
 const ELEMENT_FOLDER_TITLE = 'Folder for Storing Audio Files';
 const ELEMENT_FOLDER = 'Folder Name';
 const ELEMENT_FOLDER_DESCRIPTION =
-    'The folder (relative to the account root) '.
+    'The folder (relative to the root folder of the file system) '.
     'where protected audio files will be stored. ' .
     'The default folder is set during configuration of the plugin, ' .
-    "but can be overridden on an Item-by-Item basis.\n" .
-    '***Use only those folders specified by the Server Administrator.***';
+    "but can be overridden on an Item-by-Item basis. ";
 const ELEMENT_FOLDER_DESCRIPTION_DEFAULT =
     'The folder (relative to the account root) '.
     'where protected audio files will be stored. ' .
     'This folder will be used when no folder is specified ' .
-    "for the individual Item.\n" .
-    '***Use only those folders specified by the Server Administrator.***';
+    "for the individual Item.";
 const ELEMENT_FOLDER_FIELD = 'stream-only-directory';
 
 const ELEMENT_TIMEOUT_TITLE = 'Timeout';
 const ELEMENT_TIMEOUT = "Timeout";
 const ELEMENT_TIMEOUT_DESCRIPTION =
-"Number of seconds the protected file is made available to a site visitor. " .
-"Setting a lower value may be helpful if your site gets a lot of activity.";
+    "Number of seconds the protected file is made available to a site visitor. " .
+    "Setting a lower value may be helpful if your site gets a lot of activity. ";
 const ELEMENT_TIMEOUT_FIELD = 'timeout';
 
 // The custom message is not stored as an element
@@ -71,7 +83,7 @@ const ELEMENT_TIMEOUT_FIELD = 'timeout';
 const ELEMENT_CUSTOM_MSG_TITLE = 'Custom Message';
 const ELEMENT_CUSTOM_MSG = "Custom message";
 const ELEMENT_CUSTOM_MSG_DESCRIPTION =
-    'Custom text to be downloaded when user tries to download a protected file.';
+    "Custom text to be downloaded when user tries to download a protected file. ";
 const ELEMENT_CUSTOM_MSG_FIELD = 'custom-msg';
 
 // Names of options
