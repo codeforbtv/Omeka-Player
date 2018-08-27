@@ -30,7 +30,7 @@ const SO_SEE_USER_DOCUMENTATION =
 "User Documentation: Configuration" .
 "</a>";
 const SO_SEE_CONFIGURATION_PAGE =
-"Please see the Plugin Configuration page for more information.";
+"Please see the Configure Plugin page for more information.";
 
 // Elements made available for Items of ItemType StreamOnly
 // Not critical to the plugin
