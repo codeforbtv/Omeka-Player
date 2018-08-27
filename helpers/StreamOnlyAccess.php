@@ -29,6 +29,7 @@ function so_update_access ($action) {
     switch ($action) {
 
         case ('add'):
+            // Add the first new statement
             while (!feof($old_handle)) {
                 $command = fgets($old_handle);
                 if ($command == REWRITE_OMEKA_CONDITION) {
@@ -38,6 +39,7 @@ function so_update_access ($action) {
                 }
                 fwrite($tmp_handle, $command);
             }
+            // Add the second new statement
             while (!feof($old_handle)) {
                 $command = fgets($old_handle);
                 if ($command == REWRITE_OMEKA_RULE) {
@@ -47,9 +49,14 @@ function so_update_access ($action) {
                 }
                 fwrite($tmp_handle, $command);
             }
+            // Write out the rest of the file
+            while (!feof($old_handle)) {
+                fwrite($tmp_handle, fgets($old_handle));
+            }
             break;
 
         case ('remove'):
+            // Remove the two instances of the new statement
             while (!feof($old_handle)) {
                 $command = fgets($old_handle);
                 if ($command != REWRITE_SO_CONDITION) {
