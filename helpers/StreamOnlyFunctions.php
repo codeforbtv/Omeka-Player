@@ -171,3 +171,111 @@ function soDisplayFile($record, $props)
 
     return ($html);
 }
+
+/**
+ * @return mixed
+ *   array of the 3 IDs of the Item Type Elements that must not be deleted
+ */
+function soGetItemTypeElements() {
+
+    $itemTypeID = get_record('ItemType', array("name"=>SO_ITEM_TYPE_NAME))->id;
+
+    $db = get_db();
+    $iteTable = $db->getTable('ItemTypesElements');
+
+    // get_record() not implemented for ItemTypesElements
+    $folderElem   =
+        get_record('Element', array("name"=>ELEMENT_FOLDER));
+    $iteIDs[0]    =
+        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
+    $licensesElem =
+        get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
+    $iteIDs[1]    =
+        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
+    $timeoutElem  =
+        get_record('Element', array("name"=>ELEMENT_TIMEOUT));
+    $iteIDs[2]   =
+        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
+
+    return $iteIDs;
+}
+
+/**
+ * Called from hookAdminFooter()
+ * On the Show Item Type or Edit Item Type menus,
+ *   outputs a small JS script that removes
+ *   the buttons/icons that would allow the site
+ *   administrator to delete database elements
+ *   necessary for the StreamOnly plugin to work.
+ *
+ * @return bool
+ *   true if this was the Show Item Type or Edit Item Type menu; actions were taken
+ *   false if this was not either of the above; no actions were taken
+ */
+function soItemTypeNoDelete() {
+
+    // Menu for Item Types?
+    if (preg_match (SO_ITEM_TYPE_URL_PATTERN, $_SERVER['REQUEST_URI'], $matches ) != 1) return false;
+
+    // Item Type StreamOnly?
+    $itemTypeID = $matches[2];
+    if (get_record_by_id('Item Type', $itemTypeID)->name != SO_ITEM_TYPE_NAME) return false;
+
+    // Get the protected Item Type Elements
+    if ($matches[1] == "edit") {
+        $iteIDs = soGetItemTypeElements();
+    }
+
+    echo "\n<!-- Prevent user from deleting necessary db entries -->\n";
+    echo "<script type='text/javascript'>\n";
+    echo "jQuery(document).ready(function() {\n";
+
+    echo "  jQuery('.delete-confirm')[0].remove();\n";
+
+    if ($matches[1] == "edit") {
+        echo "  jQuery('#remove-element-link-$iteIDs[0]').hide();\n";
+        echo "  jQuery('#remove-element-link-$iteIDs[1]').hide();\n";
+        echo "  jQuery('#remove-element-link-$iteIDs[2]').hide();\n";
+    }
+
+    echo "});";
+    echo "</script>\n\n";
+
+    return true;
+
+}
+
+/**
+ * Called from hookAdminFooter()
+ * On the Settings: Item Type Elements menu,
+ *   outputs a small JS script that removes
+ *   the buttons/icons that would allow the site
+ *   administrator to delete database elements
+ *   necessary for the StreamOnly plugin to work.
+ *
+ * @return bool
+ *   true if this was the Item Type Elements menu; actions were taken
+ *   false if this was not either of the above; no actions were taken
+ */
+function soSettingsITE() {
+
+    // Menu for Settings: Item Type Elements?
+    if (preg_match (SO_SETTINGS_URL_PATTERN, $_SERVER['REQUEST_URI'], $matches ) != 1) return false;
+
+    $iteIDs = soGetItemTypeElements();
+
+    echo "\n<!-- Prevent user from deleting necessary db entries -->";
+    echo "\n<script type='text/javascript'>\n";
+    echo "jQuery(document).ready(function() {\n";
+
+
+    echo "  jQuery('#elements-$iteIDs[0]-delete').parent().find('.delete-element').hide();\n";
+    echo "  jQuery('#elements-$iteIDs[1]-delete').parent().find('.delete-element').hide();\n";
+    echo "  jQuery('#elements-$iteIDs[2]-delete').parent().find('.delete-element').hide();\n";
+
+
+    echo "});";
+    echo "</script>\n\n";
+
+    return true;
+}

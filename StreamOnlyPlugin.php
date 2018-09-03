@@ -961,13 +961,13 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     /****** FOOTER ****************************************************/
 
     /**
-     * This function fires when the footer is being displayed
+     * This function fires when the footer is being output
      * on an Admin page. It only needs to insert Javascript code
      * for certain menus. The JS code will remove the ability of
      * the Site Administrator to delete the StreamOnly Item Type,
      * or to delete the three Item Type Elements created by the
-     * StreamOnly plugin. These things will be deleted if/when
-     * the plugin is uninstalled.
+     * StreamOnly plugin. These will be deleted if/when the plugin
+     * is uninstalled.
      *
      * Typical URL for View Item Type xx menu
      * http://domain/admin/item-types/show/xx
@@ -979,50 +979,14 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      */
     public function hookAdminFooter() {
 
-        // Menu for Item Types?
-        if (preg_match (SO_ITEM_TYPE_URL_PATTERN, $_SERVER['REQUEST_URI'], $matches ) != 1) return;
+        // TODO Script to update # seconds until audio file available?
+        // TODO You never know, it might be needed in Admin Footer
 
-        // Item Type StreamOnly?
-        $itemTypeID = $matches[2];
-        if (get_record_by_id('Item Type', $itemTypeID)->name != SO_ITEM_TYPE_NAME) return;
+        // Add JS for Show Item Type and Edit Item Type menus, if needed
+        if (soItemTypeNoDelete()) return;
 
-        // get_record not implemented for ItemTypesElements
-        if ($matches[1] == "edit") {
-            $db = get_db();
-            $iteTable = $db->getTable('ItemTypesElements');
-
-            $folderElem   =
-                get_record('Element', array("name"=>ELEMENT_FOLDER));
-            $folderITE    =
-                $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0];
-            $licensesElem =
-                get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
-            $licensesITE  =
-                $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0];
-            $timeoutElem  =
-                get_record('Element', array("name"=>ELEMENT_TIMEOUT));
-            $timeoutITE   =
-                $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0];
-        }
-
-        echo "\n<!-- Prevent user from deleting necessary db entries -->";
-        echo "\n<script type='text/javascript'>\n";
-        echo "jQuery(document).ready(function() {\n";
-
-        echo "  console.log(jQuery('.delete-confirm')[0]);\n";
-        echo "  jQuery('.delete-confirm')[0].remove();\n";
-
-        if ($matches[1] == "edit") {
-            echo "  jQuery('#remove-element-link-$folderITE->id').remove();\n";
-            echo "  jQuery('#return-element-link-$folderITE->id').remove();\n";
-            echo "  jQuery('#remove-element-link-$licensesITE->id').remove();\n";
-            echo "  jQuery('#return-element-link-$licensesITE->id').remove();\n";
-            echo "  jQuery('#remove-element-link-$timeoutITE->id').remove();\n";
-            echo "  jQuery('#return-element-link-$timeoutITE->id').remove();\n";
-        }
-
-        echo "});";
-        echo "</script>\n\n";
+        // Add JS for Settings:Item Type Elements menu, if needed
+        if (soSettingsITE()) return;
 
     }
 }
