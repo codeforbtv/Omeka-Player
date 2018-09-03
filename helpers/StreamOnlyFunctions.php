@@ -196,16 +196,17 @@ function soItemTypeNoDelete() {
     // Get the protected Item Type Elements
     if ($matches[1] == "edit") {
 
-        $folderElem   = get_record('Element', array("name"=>ELEMENT_FOLDER));
-        $licensesElem = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
-        $timeoutElem  = get_record('Element', array("name"=>ELEMENT_TIMEOUT));
+        // Get the IDs of the protected Elements
+        $elemIDs[0] = get_record('Element', array("name"=>ELEMENT_FOLDER))->id;
+        $elemIDs[1] = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT))->id;
+        $elemIDs[2] = get_record('Element', array("name"=>ELEMENT_TIMEOUT))->id;
 
-        // get_record() not implemented for ItemTypesElements
-        $db = get_db();
-        $iteTable = $db->getTable('ItemTypesElements');
-        $iteIDs[0] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
-        $iteIDs[1] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
-        $iteIDs[2] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
+//        // get_record() not implemented for ItemTypesElements
+//        $db = get_db();
+//        $iteTable = $db->getTable('ItemTypesElements');
+//        $iteIDs[0] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
+//        $iteIDs[1] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
+//        $iteIDs[2] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
     }
 
     echo "\n<!-- Prevent user from deleting necessary db entries -->\n";
@@ -215,9 +216,9 @@ function soItemTypeNoDelete() {
     echo "  jQuery('.delete-confirm')[0].remove();\n";
 
     if ($matches[1] == "edit") {
-        echo "  jQuery('#remove-element-link-$iteIDs[0]').hide();\n";
-        echo "  jQuery('#remove-element-link-$iteIDs[1]').hide();\n";
-        echo "  jQuery('#remove-element-link-$iteIDs[2]').hide();\n";
+        echo "  jQuery('#remove-element-link-$elemIDs[0]').hide();\n";
+        echo "  jQuery('#remove-element-link-$elemIDs[1]').hide();\n";
+        echo "  jQuery('#remove-element-link-$elemIDs[2]').hide();\n";
     }
 
     echo "});";
