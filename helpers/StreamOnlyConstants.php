@@ -127,6 +127,12 @@ const REWRITE_OMEKA_CONDITION = "RewriteCond %{REQUEST_FILENAME} -f\n";
 const REWRITE_OMEKA_RULE      = "RewriteRule .* index.php\n";
 const REWRITE_SO_CONDITION    = "RewriteCond %{REQUEST_URI} !plugins/StreamOnly/scripts/play.php\n";
 
+// Pattern to be matched in URL's for Item Type menus
+const SO_ITEM_TYPE_URL_PATTERN = "~item-types/(show|show/id|edit)/(\d+)~";
+
+// Pattern to be matched in URL for Settings: Item Type Elements
+const SO_SETTINGS_URL_PATTERN   = "~settings/edit-item-type-elements~";
+
 
 // .htaccess file for files/m3u/ directory
 const SO_DENY_ACCESS =

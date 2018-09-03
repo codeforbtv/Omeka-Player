@@ -41,7 +41,9 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 //        'before_save_element_text',
         'after_save_element_text',
 //        'before_delete_element_text',
-        'after_delete_element_text');
+        'after_delete_element_text',
+
+        'admin_footer');
 
     protected $_options = array();
 
@@ -953,6 +955,38 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             default:
                 break;
         }
+
+    }
+
+    /****** FOOTER ****************************************************/
+
+    /**
+     * This function fires when the footer is being output
+     * on an Admin page. It only needs to insert Javascript code
+     * for certain menus. The JS code will remove the ability of
+     * the Site Administrator to delete the StreamOnly Item Type,
+     * or to delete the three Item Type Elements created by the
+     * StreamOnly plugin. These will be deleted if/when the plugin
+     * is uninstalled.
+     *
+     * Typical URL for View Item Type xx menu
+     * http://domain/admin/item-types/show/xx
+     * Typical URL for Edit Item Type XX menu
+     * http://domain/admin/item-types/edit/xx
+     *   where "xx" is the id of the record
+     *   for the StreamOnly Item Type.
+     *
+     */
+    public function hookAdminFooter() {
+
+        // TODO Script to update # seconds until audio file available?
+        // TODO You never know, it might be needed in Admin Footer
+
+        // Add JS for Show Item Type and Edit Item Type menus, if needed
+        if (soItemTypeNoDelete()) return;
+
+        // Add JS for Settings:Item Type Elements menu, if needed
+        if (soSettingsITE()) return;
 
     }
 }
