@@ -173,39 +173,11 @@ function soDisplayFile($record, $props)
 }
 
 /**
- * @return mixed
- *   array of the 3 IDs of the Item Type Elements that must not be deleted
- */
-function soGetItemTypeElements() {
-
-    $itemTypeID = get_record('ItemType', array("name"=>SO_ITEM_TYPE_NAME))->id;
-
-    $db = get_db();
-    $iteTable = $db->getTable('ItemTypesElements');
-
-    // get_record() not implemented for ItemTypesElements
-    $folderElem   =
-        get_record('Element', array("name"=>ELEMENT_FOLDER));
-    $iteIDs[0]    =
-        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
-    $licensesElem =
-        get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
-    $iteIDs[1]    =
-        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
-    $timeoutElem  =
-        get_record('Element', array("name"=>ELEMENT_TIMEOUT));
-    $iteIDs[2]   =
-        $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
-
-    return $iteIDs;
-}
-
-/**
  * Called from hookAdminFooter()
  * On the Show Item Type or Edit Item Type menus,
  *   outputs a small JS script that removes
  *   the buttons/icons that would allow the site
- *   administrator to delete database elements
+ *   administrator to delete database records
  *   necessary for the StreamOnly plugin to work.
  *
  * @return bool
@@ -223,7 +195,17 @@ function soItemTypeNoDelete() {
 
     // Get the protected Item Type Elements
     if ($matches[1] == "edit") {
-        $iteIDs = soGetItemTypeElements();
+
+        $folderElem   = get_record('Element', array("name"=>ELEMENT_FOLDER));
+        $licensesElem = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT));
+        $timeoutElem  = get_record('Element', array("name"=>ELEMENT_TIMEOUT));
+
+        // get_record() not implemented for ItemTypesElements
+        $db = get_db();
+        $iteTable = $db->getTable('ItemTypesElements');
+        $iteIDs[0] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
+        $iteIDs[1] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
+        $iteIDs[2] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
     }
 
     echo "\n<!-- Prevent user from deleting necessary db entries -->\n";
@@ -250,7 +232,7 @@ function soItemTypeNoDelete() {
  * On the Settings: Item Type Elements menu,
  *   outputs a small JS script that removes
  *   the buttons/icons that would allow the site
- *   administrator to delete database elements
+ *   administrator to delete database records
  *   necessary for the StreamOnly plugin to work.
  *
  * @return bool
@@ -262,16 +244,18 @@ function soSettingsITE() {
     // Menu for Settings: Item Type Elements?
     if (preg_match (SO_SETTINGS_URL_PATTERN, $_SERVER['REQUEST_URI'], $matches ) != 1) return false;
 
-    $iteIDs = soGetItemTypeElements();
+    // Get the IDs of the protected Elements
+    $elemIDs[0] = get_record('Element', array("name"=>ELEMENT_FOLDER))->id;
+    $elemIDs[1] = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT))->id;
+    $elemIDs[2] = get_record('Element', array("name"=>ELEMENT_TIMEOUT))->id;
 
     echo "\n<!-- Prevent user from deleting necessary db entries -->";
     echo "\n<script type='text/javascript'>\n";
     echo "jQuery(document).ready(function() {\n";
 
-
-    echo "  jQuery('#elements-$iteIDs[0]-delete').parent().find('.delete-element').hide();\n";
-    echo "  jQuery('#elements-$iteIDs[1]-delete').parent().find('.delete-element').hide();\n";
-    echo "  jQuery('#elements-$iteIDs[2]-delete').parent().find('.delete-element').hide();\n";
+    echo "  jQuery('#elements-$elemIDs[0]-delete').parent().find('.delete-element').hide();\n";
+    echo "  jQuery('#elements-$elemIDs[1]-delete').parent().find('.delete-element').hide();\n";
+    echo "  jQuery('#elements-$elemIDs[2]-delete').parent().find('.delete-element').hide();\n";
 
 
     echo "});";
