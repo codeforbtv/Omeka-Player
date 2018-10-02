@@ -115,20 +115,16 @@ function so_delete($id)
 {
     $db = get_db();
 
-    $itemTable = $db->getTable('Item');  // TODO remove after testing
     $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$id));
 
     $target = array ('which'=>'Omeka', 'dir'=>"");
     foreach ($itemList as $item) {
-        $soTable = $db->getTable('StreamOnly'); // TODO remove after testing
-        // TODO might change this to look for source in Element Text table or Options table
         $soRecord = $db->getTable('StreamOnly')->findBy(array('item_id' => $item->id));
         $source = array('which' => 'StreamOnly', 'dir' => $soRecord['so_directory']);
         $this->_moveFiles($item, $source, $target);
     }
 
     // Delete all the ItemTypesElements rows joined to this type
-    // TODO use get_records(); ???
     $ite_objs = $db->getTable('ItemTypesElements')->findBySql('item_type_id = ?', array( (int) $id));
     foreach ($ite_objs as $ite) {
         $ite->delete();
@@ -173,20 +169,4 @@ function isSOItem($item) {
     return false;
 }
 
-
-// TODO this function not needed???
-//function isInDirectory($file, $directory) {
-//
-//    switch ($directory) {
-//
-//        case 'source':
-//            $path = $_SERVER[__FILE__] . DIRECTORY_SEPARATOR . $this->so_source;
-//
-//        case 'original':
-//
-//        case 'target':
-//
-//    }
-//
-//}
 
