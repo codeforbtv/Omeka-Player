@@ -1,12 +1,13 @@
 <?php
 /**
  * Script that fetches the protected audio file
- * Should be invoked by the browser when user clicks on the audio controls
+ * Will be invoked by the browser when it downloads the audio file
  */
 
 /**
- * There can be ABSOLUTELY NOTHING before the <?php at the top of this file!
- * Otherwise we can't choose to output an audio file instead of HTML.
+ * The script MUST NOT output any HTML prior to sending the audio file.
+ * It operates outside of the Omeka environment, so it cannot rely on
+ *   the database or codebase (e.g. error reporting).
  */
 
 // Must match definitions found in helpers/StreamOnlyConstants.php
@@ -22,7 +23,7 @@ const M3U_LICENSES = 3;
  *
  * @param $path string, filepath
  * @param $count - int, # directories to remove from the end of $path
- * @return null|string|string[]
+ * @return string
  */
 
 function _remove_nodes($path, $count) {

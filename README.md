@@ -1,2 +1,6 @@
-# omeka-player
-A custom plugin player for Omeka that limits the number of listeners accessing content.
+# StreamOnly
+A plugin for Omeka Classic that allows a website
+owner to make audio files available to the public,
+while preventing their download and limiting
+the number of users simultaneously accessing
+the protected files.

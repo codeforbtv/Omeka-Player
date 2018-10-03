@@ -6,11 +6,13 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.txt GNU GPLv3
  */
 
+
 /**
  * Builds the HTML string needed to customize the audio element
  *
  * @param $props - Properties to customize display of audio files
  *    possible keys in array: 'height', 'width', 'controller', 'loop', 'autoplay'
+ * @return string
  */
 function _build_audio_props($props) {
 
@@ -71,7 +73,8 @@ function soDisplayFile($record, $props)
     }
 
     $id = $record['id'];
-    $soRecord = get_record('StreamOnlyModel', array("file_id" =>$id));
+    $itemID = $record['item_id'];
+    $soRecord = get_record('StreamOnlyModel', array("item_id" =>$itemID));
     $soDirectory = $soRecord['so_directory'];
     $timeout = $soRecord['so_timeout'];
     $licenses = $soRecord['so_licenses'];
@@ -201,12 +204,6 @@ function soItemTypeNoDelete() {
         $elemIDs[1] = get_record('Element', array("name"=>ELEMENT_LICENSE_COUNT))->id;
         $elemIDs[2] = get_record('Element', array("name"=>ELEMENT_TIMEOUT))->id;
 
-//        // get_record() not implemented for ItemTypesElements
-//        $db = get_db();
-//        $iteTable = $db->getTable('ItemTypesElements');
-//        $iteIDs[0] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$folderElem->id))[0]->id;
-//        $iteIDs[1] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$licensesElem->id))[0]->id;
-//        $iteIDs[2] = $iteTable->findBy(array("item_type_id"=>$itemTypeID, "element_id"=>$timeoutElem->id))[0]->id;
     }
 
     echo "\n<!-- Prevent user from deleting necessary db entries -->\n";

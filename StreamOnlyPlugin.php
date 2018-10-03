@@ -68,40 +68,10 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
         'timeout_option'      => NULL
     );
 
-    // TODO Check that Omeka translates this message, and that plugin doesn't have to do it
+    // TODO This should be a class method, and be registered as a hook
+    // TODO Should include a warning that if there are large numbers of
+    // TODO   Items of ItemType StreamOnly, this may take a while
     public $uninstall_message = "All protected files will be moved to the default upload directory. Visitors to the site will be able to download them. All Items of Item Type StreamOnly will be set to undefined.";
-
-    /**
-     * Check that the user input is valid
-     *
-     * TODO output error messages as needed
-     * TODO check that Omeka sanitizes POST variables
-     *
-     * TODO how should error messages be returned? throw an error?
-     *
-     * @postData - the output from $this->_getPostData()
-     * @return bool (true if no errors;
-     *               false if errors, messages stored in $record)
-     */
-    private function _soValidateConfigFields($postData) {
-
-        $no_errors = true;
-
-        // 1. $postData[OPTION_LICENSE_COUNT_FIELD] is an integer
-        // 2. $postData[OPTION_FOLDER_FIELD] is a valid directory
-        // 3  $postData[OPTION_FOLDER_FIELD] has correct permissions
-        // 4. The length of the path + file name < 255 chars
-        // 5. $postData[OPTION_TIMEOUT_FIELD] is an integer
-
-        // Use defined constants for the field names
-        // $record->addError('field_name', __('Error message'));
-        // $record->addError(OPTION_LICENSE_COUNT_FIELD, __('Error message'));
-        // $record->addError(OPTION_FOLDER_FIELD,        __('Error message'));
-        // $record->addError(OPTION_TIMEOUT_FIELD,       __('Error message'));
-
-        return $no_errors;
-
-    }
 
     /**
      * Checks that the file indicated by the record should be protected
@@ -116,8 +86,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     /**
      * Builds the path name to a directory where one might find a Protected File
      * String ends in a DIRECTORY_SEPARATOR
-     *
-     * TODO Use Omeka's constants for building path names
      *
      * @param $which - 'Omeka' or 'StreamOnly'
      * @param $folder - the SO folder, if $which = 'StreamOnly'
@@ -159,7 +127,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      * It has already been found to exist in the source directory
      * and not to exist in the target directory
      *
-     * TODO Throw execption if failure
+     * TODO Throw exception if failure
      *
      * @param $file - record from File Table
      * @param $sourceDir - directory where the file is now
@@ -182,10 +150,10 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      *
      * @param $item - record of the Item whose files are to be moved
      *                or NULL if the files to be moved are stored in $this->_soState['filelist']
-     * @param $source['which']  - 'Omeka' or 'StreamOnly', to be provided as input to _buildPath
-     * @param $source['srcDir'] - folder in which to search for files to be moved
-     * @param $target['which']    - 'Omeka' or 'StreamOnly', to be provided as input to _buildPath
-     * @param $target['destDir']  - folder in which to place the files to be moved
+     * @param $source['which']   - 'Omeka' or 'StreamOnly', to be provided as input to _buildPath
+     *               ['srcDir']  - folder in which to search for files to be moved
+     * @param $target['which']   - 'Omeka' or 'StreamOnly', to be provided as input to _buildPath
+     *               ['destDir'] - folder in which to place the files to be moved
      */
     private function _moveFiles($item, $source, $target) {
 
@@ -212,10 +180,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
      *
      * Stores useful info in protected variable $this->_soState
      * Registers the callback function that outputs the HTML for audio/mpeg files.
-     * TODO third param - $options - to be passed to callback as second param - $props?
-     * TODO If so, should we allow admin or theme to customize?
-     *
-     * @return StreamOnlyPlugin
      */
     public function __construct()
     {
@@ -326,7 +290,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
                 'Could not create the playlist directory'));
         }
 
-        // TODO Recover from errors
+        // TODO Report and recover from errors
         // create the .htaccess file to protect the .m3u files
         file_put_contents($m3uDir . DIRECTORY_SEPARATOR . HTACCESS, SO_DENY_ACCESS);
         // Create an empty file for storing list of reserved files
@@ -398,6 +362,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
 
         // TODO This could return a very large # of Items
         // TODO Consider iterating using get_records()
+        // TODO Consider putting a warning in $uninstall_message()
         // TODO https://omeka.readthedocs.io/en/latest/Reference/libraries/globals/get_records.html
         // Get all the Items of ItemType StreamOnly
         $itemList = $db->getTable('Item')->findBy(array('item_type_id'=>$itemType->id));
@@ -455,15 +420,6 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     public function hookConfig()
     {
 
-        // $record->addError('field_name', __('Error message'));
-        // $record->addError(OPTION_LICENSE_COUNT_FIELD, __('Error message'));
-        // $record->addError(OPTION_FOLDER_FIELD,        __('Error message'));
-        // $record->addError(OPTION_TIMEOUT_FIELD,       __('Error message'));
-
-        // TODO Sanitize the $_POST variables???
-        // TODO Validate the $_POST variables
-        // TODO How to report errors?
-
         // should be an integer
         $defaultLicenses = $_POST[OPTION_LICENSES];
 
@@ -501,7 +457,8 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
     /**
      * Fires before the record is saved in the Item table
      *
-     *   TODO Need to validate fields here
+     * TODO Some validation of the ItemTypeElements specific to
+     * TODO   Items of ItemType StreamOnly would be helpful
      *
      * @param $args
      *   ['record']  record of type Item
@@ -613,7 +570,7 @@ class StreamOnlyPlugin extends Omeka_Plugin_AbstractPlugin
             }
 
             // TODO This might be where ElementText records get created so that next
-            // TODO time the user edits this record, values show up in the form fields
+            // TODO   time the user edits this record, values show up in the form fields
 
                 $soRecord->save();
                 break;
