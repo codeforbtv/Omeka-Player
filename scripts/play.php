@@ -79,29 +79,34 @@ if (!file_exists($mp3Filename)) {
     die("Can't find audio file: $mp3Filename");
 }
 
-$handle = fopen($mp3Filename, "rb");
-if (!$handle) {
-    die("Cannot access audio file: $mp3Filename");
-}
+// To make Firefox happy, close connection from previous request
+ob_end_clean();
+header("Connection: close");
+ignore_user_abort(true); // just to be safe
+ob_start();
 
 // Send out the headers
 header("Content-Disposition: inline");
 header("Content-Type: audio/mpeg");
 header("Content-Length: " . filesize($mp3Filename));
+header("Pragma: no-cache"); // for IE
 //$timestamp = gmdate("D, d M Y H:i:s") . " GMT";
 //header("Expires: $timestamp");
 //header("Last-Modified: $timestamp");
 //header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", false);
 //header("Cache-Control: post-check=0, pre-check=0", false);
-//header("Pragma: no-cache");
 
-//if (extension_loaded("X-Sendfile")) {  // TODO Add option for admin to specify use of mod_xsendfile
-//    fclose($handle);                   // TODO Add config instructions to developer and user manuals
-//    header("X-Sendfile: $mp3Filename");
-//    exit;
-//}
+// TODO Add option for admin to specify use of mod_xsendfile
+//if ($xSendOption && extension_loaded("X-Sendfile")) {
+if (false)
+    header("X-Sendfile: $mp3Filename");
+else
+    readfile($mp3Filename);
 
-$result = fpassthru($handle);
+// To make Firefox happy, flush buffer
+ob_end_flush(); // Strange behaviour, will not work in some cases
+flush(); // Unless both are called !
+
 exit;
 
 //// First read everything EXCEPT the id3v1.x tag

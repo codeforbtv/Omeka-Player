@@ -38,6 +38,19 @@ function _build_audio_props($props) {
         $audioProps .= " loop";
     }
 
+    if (isset($props['preload'])) {
+        switch ($props['preload']) {
+            case "none":
+            case "metadata":
+            case "auto":
+                $audioProps .= ' preload="' . $props['preload']. '"';
+                break;
+            default:
+                break;
+        }
+
+    }
+
     return ($audioProps);
 }
 
