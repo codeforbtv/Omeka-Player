@@ -168,6 +168,7 @@ function soDisplayFile($record, $props)
         $expires    = $now + (int)$timeout - 2;
         $audioProps  = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
         $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
+        $audioProps .= ' type="audio/mpeg"';
         $url = WEB_PLUGIN . "/" . SO_PLUGIN_NAME . "/scripts/play.php/$m3uFile/";
 
         $html  = "\n" . "<audio $audioProps>" . "\n";

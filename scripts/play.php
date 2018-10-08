@@ -79,35 +79,44 @@ if (!file_exists($mp3Filename)) {
     die("Can't find audio file: $mp3Filename");
 }
 
-// To make Firefox happy, close connection from previous request
+// Ensure that the output buffer is empty
+// TODO this may be superfluous
 ob_end_clean();
-header("Connection: close");
-ignore_user_abort(true); // just to be safe
 ob_start();
-
-// Send out the headers
-header("Content-Disposition: inline");
-header("Content-Type: audio/mpeg");
-header("Content-Length: " . filesize($mp3Filename));
-header("Pragma: no-cache"); // for IE
-//$timestamp = gmdate("D, d M Y H:i:s") . " GMT";
-//header("Expires: $timestamp");
-//header("Last-Modified: $timestamp");
-//header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", false);
-//header("Cache-Control: post-check=0, pre-check=0", false);
 
 // TODO Add option for admin to specify use of mod_xsendfile
 //if ($xSendOption && extension_loaded("X-Sendfile")) {
 if (false)
     header("X-Sendfile: $mp3Filename");
-else
-    readfile($mp3Filename);
+else {
+    $handle = fopen($mp3Filename, "rb");
 
-// To make Firefox happy, flush buffer
-ob_end_flush(); // Strange behaviour, will not work in some cases
-flush(); // Unless both are called !
+    // Send out the headers
+    header("Content-Disposition: inline", true);
+//    header("Content-Type: audio/mpeg", true);
+//    header("Content-Length: " . filesize($mp3Filename), true);
+    //header("Pragma: no-cache", true); // for IE
+    //$timestamp = gmdate("D, d M Y H:i:s") . " GMT";
+    //header("Expires: $timestamp");
+    //header("Last-Modified: $timestamp");
+    //header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0", false);
+    //header("Cache-Control: post-check=0, pre-check=0", false);
+    $temp = fpassthru($handle);
+    $temp2 = fclose($handle);
 
-exit;
+}
+
+
+// Flush the buffer
+ob_end_flush();
+
+// Explicitly close the persistent connection
+//   as PHP does not do this when a script ends successfully
+//   and Firefox keeps the connection open when preloading
+//header("Connection: close");
+
+//
+exit();
 
 //// First read everything EXCEPT the id3v1.x tag
 ////  at the end.
