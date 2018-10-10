@@ -38,18 +38,19 @@ function _build_audio_props($props) {
         $audioProps .= " loop";
     }
 
-    if (isset($props['preload'])) {
-        switch ($props['preload']) {
-            case "none":
-            case "metadata":
-            case "auto":
-                $audioProps .= ' preload="' . $props['preload']. '"';
-                break;
-            default:
-                break;
-        }
-
-    }
+    // TODO Find out if Omeka file_markup default callback handles preload
+//    if (isset($props['preload'])) {
+//        switch ($props['preload']) {
+//            case "none":
+//            case "metadata":
+//            case "auto":
+//                $audioProps .= ' preload="' . $props['preload']. '"';
+//                break;
+//            default:
+//                break;
+//        }
+//
+//    }
 
     return ($audioProps);
 }
@@ -79,7 +80,7 @@ function soDisplayFile($record, $props)
         $url = WEB_FILES . "/original/" . $record['filename'];
         $audioProps = _build_audio_props($props);
         $html  = "\n<audio $audioProps>\n";
-        $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
+        $html .= "<source src='$url' type='audio/mpeg'>\n";
         $html .= "$alt_msg\n";
         $html .= "</audio>\n";
         return ($html);
@@ -166,13 +167,13 @@ function soDisplayFile($record, $props)
 
         // Build the HTML for this file
         $expires    = $now + (int)$timeout - 2;
-        $audioProps  = " class='so-audio' data-sofile='$id' data-soexpires='$expires'";
-        $audioProps .= ' controlsList="nodownload"' . _build_audio_props($props);
-        $audioProps .= ' type="audio/mpeg"';
+        $audioProps  = ' class="so-audio" data-sofile="$id" data-soexpires="$expires"';
+        $audioProps .= ' controlsList="nodownload" preload="auto"';
+        $audioProps .= _build_audio_props($props);
         $url = WEB_PLUGIN . "/" . SO_PLUGIN_NAME . "/scripts/play.php/$m3uFile/";
 
         $html  = "\n" . "<audio $audioProps>" . "\n";
-        $html .= "<source src='$url'>\n";  // TODO should there be a mimetype attribute?
+        $html .= "<source src='$url' type='audio/mpeg'>\n";
         $html .= "<span class='so-noaudio'>$alt_msg</span>\n";
         $html .= "</audio>";
     }
